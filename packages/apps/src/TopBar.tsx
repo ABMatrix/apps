@@ -1,11 +1,11 @@
-// Copyright 2017-2019 @polkadot/apps authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 // Unused atm, experiment as a replacement for NodeInfo on the SideBar
 
 import React from 'react';
 import styled from 'styled-components';
+
 import { BestNumber, Chain, NodeName, NodeVersion } from '@polkadot/react-query';
 
 interface Props {
@@ -27,7 +27,7 @@ function TopBar ({ className }: Props): React.ReactElement<Props> {
   );
 }
 
-export default styled(TopBar)`
+export default React.memo(styled(TopBar)`
   background: #f2f2f2;
   font-size: 0.85rem;
   line-height: 1rem;
@@ -53,4 +53,4 @@ export default styled(TopBar)`
       border-width: 0;
     }
   }
-`;
+`);

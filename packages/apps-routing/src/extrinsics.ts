@@ -1,22 +1,21 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Extrinsics from '@polkadot/app-extrinsics';
+import Component from '@polkadot/app-extrinsics';
 
-export default ([
-  {
-    Component: Extrinsics,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsAccounts: true,
       needsApi: []
     },
-    i18n: {
-      defaultValue: 'Extrinsics'
-    },
-    icon: 'sync',
-    name: 'extrinsics'
-  }
-] as Routes);
+    group: 'developer',
+    icon: 'envelope-open-text',
+    name: 'extrinsics',
+    text: t('nav.extrinsics', 'Extrinsics', { ns: 'apps-routing' })
+  };
+}

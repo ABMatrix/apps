@@ -1,14 +1,14 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Sudo from '@polkadot/app-sudo';
+import Component from '@polkadot/app-sudo';
 
-export default ([
-  {
-    Component: Sudo,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsAccounts: true,
       needsApi: [
@@ -16,10 +16,9 @@ export default ([
       ],
       needsSudo: true
     },
-    i18n: {
-      defaultValue: 'Sudo'
-    },
+    group: 'developer',
     icon: 'unlock',
-    name: 'sudo'
-  }
-] as Routes);
+    name: 'sudo',
+    text: t('nav.sudo', 'Sudo', { ns: 'apps-routing' })
+  };
+}

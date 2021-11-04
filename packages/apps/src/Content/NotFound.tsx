@@ -1,17 +1,21 @@
-// Copyright 2017-2019 @polkadot/apps authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import type { RouteProps } from '@polkadot/apps-routing/types';
 
 import React from 'react';
 import { Redirect } from 'react-router';
-import routing from '@polkadot/apps-routing';
 
-type Props = {};
+interface Props extends RouteProps {
+  missingApis?: (string | string[])[];
+}
 
-const defaultTo = `/${routing.default}`;
+function NotFound ({ basePath, missingApis = [] }: Props): React.ReactElement {
+  console.log(`Redirecting from route "${basePath}" to "/explorer"${missingApis.length ? `, missing the following APIs: ${JSON.stringify(missingApis)}` : ''}`);
 
-export default function NotFound (): React.ReactElement<Props> {
   return (
-    <Redirect to={defaultTo} />
+    <Redirect to='/explorer' />
   );
 }
+
+export default React.memo(NotFound);

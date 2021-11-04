@@ -1,39 +1,30 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { css } from 'styled-components';
+import type { ThemeDef } from '../types';
 
-export default css`
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (_theme: ThemeDef): string => `
   .ui--output {
-    background: #fefefe;
+    background: var(--bg-input);
     border-radius: 4px;
     border: 1px dashed #eee;
     box-sizing: border-box;
     line-height: 1rem;
-    margin: 0.25rem;
-    padding: .75rem 1rem;
+    max-height: 25rem;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
     position: relative;
-    word-wrap: break-word;
+    word-break: break-all;
 
     &.error {
-      background: #fff6f6;
+      background: var(--bg-input-error);
       border-color: #e0b4b4;
     }
 
     &.monospace {
       font-family: monospace;
     }
-
-    .ui--output-button {
-      position: absolute;
-      top: 0.25rem;
-      right: 0.25rem;
-    }
-  }
-
-  .ui--Button-Group .button {
-    border-radius: .28571429rem !important;
   }
 
   header .ui--Button-Group {
@@ -44,10 +35,17 @@ export default css`
     margin: 0;
   }
 
-  button.ui.icon.iconButton {
-    padding: 0em 0em .3em .3em !important;
+  button.u.ui--Icon.icon-button {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0.3em;
+    padding-left: 0.3em;
     color: #2e86ab  !important;
     background: none  !important;
+  }
+
+  button.ui--Button {
+    font: var(--font-sans);
   }
 
   .editable {
@@ -80,19 +78,29 @@ export default css`
       }
     }
 
+    &.inPlaceEditor {
+      margin: 0 !important;
+
+      input {
+        padding: 0 !important;
+        background: rgba(230, 230, 230, 0.8) !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: 0 3px 3px rgba(0,0,0,.2);
+      }
+    }
+
+    &.isWarning.ui.input {
+      > input,
+      input:focus {
+        background: #ffffe0;
+        border-color: #eeeeae;
+      }
+    }
+
     .ui--SiDropdown {
       width: 6rem;
       text-align: center;
-    }
-
-    .ui--MaxButton {
-      position: absolute;
-      right: 6.5rem;
-      top: 20%;
-      height: 60%;
-      text-transform: uppercase;
-      padding: 0 0.5rem !important;
-      border-radius: 0.3rem !important;
     }
   }
 
@@ -106,5 +114,28 @@ export default css`
     text-align: center;
     z-index: 1002;
     max-width: 300px;
+
+
+    &.accounts-badge {
+      background-color: var(--bg-menu) !important;
+      color: var(--color-text) !important;
+      box-shadow: 0 2px 4px 0 rgb(34 36 38 / 12%), 0 2px 10px 0 rgb(34 36 38 / 15%);
+      z-index: 999;
+
+      &.place-top::after {
+        border-top-color: var(--bg-menu) !important;
+      }
+
+      &.place-right::after {
+        border-right-color: var(--bg-menu) !important;
+      }
+
+    a {
+      color: #3BBEFF;
+
+      &.purpleColor {
+        color: #E6007A;
+      }
+    }
   }
 `;

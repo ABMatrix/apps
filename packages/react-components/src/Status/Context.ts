@@ -1,8 +1,7 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { QueueProps, QueueStatus, QueueTx } from './types';
+import type { QueueProps, QueueStatus, QueueTx } from './types';
 
 import React from 'react';
 
@@ -11,11 +10,11 @@ const defaultState: Partial<QueueProps> = {
   txqueue: [] as QueueTx[]
 };
 
-const Context: React.Context<QueueProps> = React.createContext<QueueProps>(defaultState as QueueProps);
-const QueueConsumer: React.Consumer<QueueProps> = Context.Consumer;
-const QueueProvider: React.Provider<QueueProps> = Context.Provider;
+const StatusContext: React.Context<QueueProps> = React.createContext<QueueProps>(defaultState as QueueProps);
+const QueueConsumer: React.Consumer<QueueProps> = StatusContext.Consumer;
+const QueueProvider: React.Provider<QueueProps> = StatusContext.Provider;
 
-export default Context;
+export default StatusContext;
 
 export {
   QueueConsumer,

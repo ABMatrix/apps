@@ -1,37 +1,42 @@
-/* eslint-disable @typescript-eslint/camelcase */
-// Copyright 2017-2019 @polkadot/react-query authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-query authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Moment } from '@polkadot/types/interfaces';
-import { BareProps, CallProps } from '@polkadot/react-api/types';
+import type BN from 'bn.js';
+import type { Moment } from '@polkadot/types/interfaces';
 
-import React from 'react';
-import { withCalls } from '@polkadot/react-api';
+import React, { useEffect, useState } from 'react';
+
+import { useApi, useCall } from '@polkadot/react-hooks';
 
 import Elapsed from './Elapsed';
 
-interface Props extends BareProps, CallProps {
+interface Props {
   children?: React.ReactNode;
+  className?: string;
   label?: React.ReactNode;
-  timestamp_now?: Moment;
+  value?: Moment;
 }
 
-export function TimeNow ({ children, className, isSubstrateV2, label = '', style, timestamp_now }: Props): React.ReactElement<Props> {
-  const value = isSubstrateV2 || !timestamp_now
-    ? timestamp_now
-    : timestamp_now.muln(1000); // for 1.x, timestamps are in seconds
+function TimeNow ({ children, className = '', label, value }: Props): React.ReactElement<Props> | null {
+  const { api } = useApi();
+  const timestamp = useCall<Moment>(!value && api.query.timestamp?.now);
+  const [now, setNow] = useState<BN | undefined>();
+
+  useEffect((): void => {
+    setNow(value || timestamp);
+  }, [timestamp, value]);
+
+  if (!now) {
+    return null;
+  }
 
   return (
-    <div
-      className={className}
-      style={style}
-    >
-      {label}
-      <Elapsed value={value} />
+    <div className={className}>
+      {label || ''}
+      <Elapsed value={now} />
       {children}
     </div>
   );
 }
 
-export default withCalls<Props>('query.timestamp.now')(TimeNow);
+export default React.memo(TimeNow);

@@ -1,11 +1,10 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { KeyringItemType } from '@polkadot/ui-keyring/types';
+import type { KeyringItemType } from '@polkadot/ui-keyring/types';
 
-import getAddressMeta from './getAddressMeta';
+import { getAddressMeta } from './getAddressMeta';
 
-export default function getAddressTags (address: string, type: KeyringItemType | null = null): string[] {
-  return getAddressMeta(address, type).tags || [];
+export function getAddressTags (address: string, type: KeyringItemType | null = null): string[] {
+  return getAddressMeta(address, type).tags as string[] || [];
 }

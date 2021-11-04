@@ -1,11 +1,11 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { StorageEntryBase } from '@polkadot/api/types';
-import { ModuleConstantMetadataV7 } from '@polkadot/types/interfaces';
+import type { StorageEntryBase } from '@polkadot/api/types';
+import type { PalletConstantMetadataLatest } from '@polkadot/types/interfaces';
+import type { AnyTuple } from '@polkadot/types/types';
 
-export type StorageEntryPromise = StorageEntryBase<'promise', any>;
+export type StorageEntryPromise = StorageEntryBase<'promise', any, AnyTuple>;
 
 export interface ConstValueBase {
   method: string;
@@ -13,5 +13,5 @@ export interface ConstValueBase {
 }
 
 export interface ConstValue extends ConstValueBase {
-  meta: ModuleConstantMetadataV7;
+  meta: PalletConstantMetadataLatest;
 }

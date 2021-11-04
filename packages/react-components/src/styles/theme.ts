@@ -1,107 +1,49 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
-
-import { css } from 'styled-components';
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 /* default buttons, dark gray */
-const colorBtnDefault = '#666';
+export const colorBtnDefault = '#767778';
+
+export const colorBtnShadow = '#98999a';
 
 /* highlighted buttons, orange */
-const colorBtnHighlight = '#f19135';
+export const colorBtnHighlight = '#f19135';
 
 /* primary buttons, blue */
-const colorBtnPrimary = '#2e86ab';
+export const colorBtnPrimary = colorBtnDefault; // '#2e86ab';
 
 /* button text color */
-const colorBtnText = '#f9f9f9';
+export const colorBtnText = '#f9f8f7';
 
-export default css`
-  .theme--default {
-    a {
-      color: ${colorBtnPrimary};
+export const colorLink = '#2e86ab';
+
+export default `
+  .theme--dark,
+  .theme--light {
+    a:not(.ui--Tab) {
+      color: ${colorLink};
 
       &:hover,
       a:visited {
-        color: ${colorBtnPrimary};
+        color: ${colorLink};
       }
     }
 
-    .ui.button,
-    .ui.buttons .button {
-      background-color: ${colorBtnDefault};
-      color: ${colorBtnText};
-
-      &.active,
-      &:active,
-      &:focus,
-      &:hover {
-        background-color: ${colorBtnDefault};
-        color: ${colorBtnText};
-      }
-
-      &:hover {
-        opacity: 0.8;
+    .ui--Button {
+      &.isIcon:not(.isDisabled):not(.withoutLink):not(:hover) {
+        .ui--Icon {
+          color: ${colorLink};
+        }
       }
     }
 
-    .ui.basic.negative.button {
-      box-shadow: 0 0 0 1px ${colorBtnHighlight} inset !important;
-      color: ${colorBtnHighlight} !important;
+    .ui.modal > .header:not(.ui) {
+      border-bottom-color: ${colorBtnDefault};
     }
 
     .ui.negative.button,
     .ui.buttons .negative.button {
-      background-color: ${colorBtnHighlight};
-
-      &.active,
-      &:active,
-      &:focus,
-      &:hover {
-        background-color: ${colorBtnHighlight};
-      }
-    }
-
-    .ui.primary.button,
-    .ui.buttons .primary.button
-    /*, .ui.primary.buttons .button (for dropdowns) */ {
-      background-color: ${colorBtnPrimary};
-
-      &.active,
-      &:active,
-      &:focus,
-      &:hover {
-        background-color: ${colorBtnPrimary};
-      }
-    }
-
-    .ui.blue.progress .bar {
-      background-color: ${colorBtnHighlight};
-    }
-
-    .ui.modal > .header:not(.ui) {
-      border-bottom-color: ${colorBtnHighlight};
-    }
-
-    .ui.menu.tabular .item.active {
-      border-bottom-color: ${colorBtnHighlight};
-    }
-
-    /* this is for dropdown buttons */
-    .ui.buttons .ui.button.selection.visible.dropdown {
-      &:hover {
-        /* reset opacity, this is now open */
-        opacity: 1;
-      }
-
-      > .text:not(.default) {
-        color: ${colorBtnText};
-      }
-    }
-
-    .ui.toggle.checkbox input:checked~.box:before,
-    .ui.toggle.checkbox input:checked~label:before {
-      background-color: ${colorBtnHighlight} !important;
+      background: #666 !important;
     }
   }
 `;

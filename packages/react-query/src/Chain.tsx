@@ -1,27 +1,27 @@
-/* eslint-disable @typescript-eslint/camelcase */
-// Copyright 2017-2019 @polkadot/react-query authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-query authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from '@polkadot/react-api/types';
+import React from 'react';
 
-import React, { useContext } from 'react';
-import { ApiContext } from '@polkadot/react-api';
+import { useApi } from '@polkadot/react-hooks';
 
-interface Props extends BareProps {
+import { useTranslation } from './translate';
+
+interface Props {
   children?: React.ReactNode;
+  className?: string;
   label?: React.ReactNode;
 }
 
-export default function Chain ({ children, className, label = '', style }: Props): React.ReactElement<Props> {
-  const { systemChain } = useContext(ApiContext);
+function Chain ({ children, className = '', label }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
+  const { systemChain } = useApi();
 
   return (
-    <div
-      className={className}
-      style={style}
-    >
-      {label}{systemChain}{children}
+    <div className={className}>
+      {label || ''}{systemChain || t('Unknown')}{children}
     </div>
   );
 }
+
+export default React.memo(Chain);

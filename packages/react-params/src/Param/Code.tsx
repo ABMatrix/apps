@@ -1,47 +1,40 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Props } from '../types';
+import type { Props } from '../types';
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+
+import { isWasm } from '@polkadot/util';
 
 import Bytes from './Bytes';
 import BytesFile from './File';
 
-function renderDisabled ({ className, defaultValue, isError, label, onEnter, style, type, withLabel }: Props): React.ReactNode {
-  return (
-    <Bytes
-      className={className}
-      defaultValue={defaultValue}
-      isError={isError}
-      label={label}
-      onEnter={onEnter}
-      style={style}
-      type={type}
-      withLabel={withLabel}
-    />
+function Code ({ className = '', defaultValue, isDisabled, isError, label, onChange, onEnter, onEscape, type, withLabel }: Props): React.ReactElement<Props> {
+  const [isValid, setIsValid] = useState(false);
+
+  const _onChange = useCallback(
+    (value: Uint8Array): void => {
+      const isValid = isWasm(value);
+
+      onChange && onChange({ isValid, value });
+      setIsValid(isValid);
+    },
+    [onChange]
   );
-}
-
-// TODO: Validate that we have actual proper WASM code
-function onChange ({ onChange }: Props): (_: Uint8Array) => void {
-  return function (value: Uint8Array): void {
-    onChange && onChange({
-      isValid: value.length !== 0,
-      value
-    });
-  };
-}
-
-export default function Code (props: Props): React.ReactElement<Props> {
-  const { className, defaultValue, isDisabled, isError, label, style, withLabel } = props;
 
   if (isDisabled) {
     return (
-      <>
-        {renderDisabled(props)}
-      </>
+      <Bytes
+        className={className}
+        defaultValue={defaultValue}
+        isError={isError || !isValid}
+        label={label}
+        onEnter={onEnter}
+        onEscape={onEscape}
+        type={type}
+        withLabel={withLabel}
+      />
     );
   }
 
@@ -49,11 +42,12 @@ export default function Code (props: Props): React.ReactElement<Props> {
     <BytesFile
       className={className}
       defaultValue={defaultValue}
-      isError={isError}
+      isError={isError || !isValid}
       label={label}
-      onChange={onChange(props)}
-      style={style}
+      onChange={_onChange}
       withLabel={withLabel}
     />
   );
 }
+
+export default React.memo(Code);

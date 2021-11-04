@@ -1,11 +1,11 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { DropdownOption, DropdownOptions } from '../../util/types';
+import type { DropdownOption, DropdownOptions } from '../../util/types';
 
 import React from 'react';
-import ApiPromise from '@polkadot/api/promise';
+
+import { ApiPromise } from '@polkadot/api';
 
 export default function createOptions (api: ApiPromise, sectionName: string): DropdownOptions {
   const section = api.tx[sectionName];
@@ -20,8 +20,7 @@ export default function createOptions (api: ApiPromise, sectionName: string): Dr
     .map((value): DropdownOption => {
       const method = section[value];
       const inputs = method.meta.args
-        .filter((arg): boolean => arg.type.toString() !== 'Origin')
-        .map((arg): string => arg.name.toString())
+        .map((arg) => arg.name.toString())
         .join(', ');
 
       return {
@@ -38,7 +37,7 @@ export default function createOptions (api: ApiPromise, sectionName: string): Dr
             className='ui--DropdownLinked-Item-text'
             key={`${sectionName}_${value}:text`}
           >
-            {(method.meta.documentation[0] || value).toString()}
+            {(method.meta.docs[0] || value).toString()}
           </div>
         ],
         value

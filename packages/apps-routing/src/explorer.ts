@@ -1,21 +1,20 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Explorer from '@polkadot/app-explorer';
+import Component from '@polkadot/app-explorer';
 
-export default ([
-  {
-    Component: Explorer,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsApi: []
     },
-    i18n: {
-      defaultValue: 'Explorer'
-    },
+    group: 'network',
     icon: 'braille',
-    name: 'explorer'
-  }
-] as Routes);
+    name: 'explorer',
+    text: t('nav.explorer', 'Explorer', { ns: 'apps-routing' })
+  };
+}

@@ -1,37 +1,35 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from './types';
-
-import React, { useState } from 'react';
+import React from 'react';
 import ReactMd from 'react-markdown';
 import styled from 'styled-components';
 
+import { useToggle } from '@polkadot/react-hooks';
+
 import Icon from './Icon';
 
-interface Props extends BareProps {
+interface Props {
+  className?: string;
   md: string;
 }
 
-function HelpOverlay ({ className, md }: Props): React.ReactElement<Props> {
-  const [isVisible, setIsVisible] = useState(false);
-
-  const _toggleVisible = (): void => setIsVisible(!isVisible);
+function HelpOverlay ({ className = '', md }: Props): React.ReactElement<Props> {
+  const [isVisible, toggleVisible] = useToggle();
 
   return (
-    <div className={className}>
+    <div className={`ui--HelpOverlay ${className}`}>
       <div className='help-button'>
         <Icon
-          name='help circle'
-          onClick={_toggleVisible}
+          icon='question-circle'
+          onClick={toggleVisible}
         />
       </div>
       <div className={`help-slideout ${isVisible ? 'open' : 'closed'}`}>
         <div className='help-button'>
           <Icon
-            name='close'
-            onClick={_toggleVisible}
+            icon='times'
+            onClick={toggleVisible}
           />
         </div>
         <ReactMd
@@ -44,22 +42,24 @@ function HelpOverlay ({ className, md }: Props): React.ReactElement<Props> {
   );
 }
 
-export default styled(HelpOverlay)`
+export default React.memo(styled(HelpOverlay)`
   .help-button {
+    color: var(--color-text);
     cursor: pointer;
     font-size: 2rem;
-    padding: 1.25rem 1.5rem 0 0;
+    padding: 0.35rem 1.5rem 0 0;
   }
 
   > .help-button {
     position: absolute;
     right: 0rem;
     top: 0rem;
+    z-index: 10;
   }
 
   .help-slideout {
-    background: #eee;
-    border-left: 0.25rem solid #ddd;
+    background: var(--bg-page);
+    box-shadow: -6px 0px 20px 0px rgba(0, 0, 0, 0.3);
     bottom: 0;
     max-width: 50rem;
     overflow-y: scroll;
@@ -68,7 +68,7 @@ export default styled(HelpOverlay)`
     top: 0;
     transition-duration: .5s;
     transition-property: all;
-    z-index: 10;
+    z-index: 225; /* 5 more than menubar */
 
     .help-button {
       text-align: right;
@@ -82,4 +82,4 @@ export default styled(HelpOverlay)`
       right: 0;
     }
   }
-`;
+`);

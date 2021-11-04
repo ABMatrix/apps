@@ -1,88 +1,86 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 // TODO: We have a lot shared between this and InputExtrinsic & InputStorage
 
-import { RpcMethod } from '@polkadot/jsonrpc/types';
-import { DropdownOptions } from '../util/types';
-import { I18nProps } from '../types';
+import type { DefinitionRpcExt } from '@polkadot/types/types';
+import type { DropdownOptions } from '../util/types';
 
-import '../InputExtrinsic/InputExtrinsic.css';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import React, { useContext, useState } from 'react';
-import map from '@polkadot/jsonrpc';
-import { ApiContext } from '@polkadot/react-api';
+import { useApi } from '@polkadot/react-hooks';
 
-import Labelled from '../Labelled';
-import translate from '../translate';
-import SelectMethod from './SelectMethod';
-import SelectSection from './SelectSection';
+import LinkedWrapper from '../InputExtrinsic/LinkedWrapper';
 import methodOptions from './options/method';
 import sectionOptions from './options/section';
+import SelectMethod from './SelectMethod';
+import SelectSection from './SelectSection';
+import useRpcs from './useRpcs';
 
-interface Props extends I18nProps {
-  defaultValue: RpcMethod;
+interface Props {
+  className?: string;
+  defaultValue: DefinitionRpcExt;
   help?: React.ReactNode;
   isError?: boolean;
   label: React.ReactNode;
-  onChange?: (value: RpcMethod) => void;
+  onChange?: (value: DefinitionRpcExt) => void;
   withLabel?: boolean;
 }
 
-function InputRpc ({ className, defaultValue, help, label, onChange, style, withLabel }: Props): React.ReactElement<Props> {
-  const { api } = useContext(ApiContext);
-  const [optionsMethod, setOptionsMethod] = useState<DropdownOptions>(methodOptions(api, defaultValue.section));
-  const [optionsSection] = useState<DropdownOptions>(sectionOptions(api));
-  const [value, setValue] = useState<RpcMethod>((): RpcMethod => defaultValue);
+function InputRpc ({ className = '', defaultValue, help, label, onChange, withLabel }: Props): React.ReactElement<Props> {
+  const { api } = useApi();
+  const rpcs = useRpcs();
+  const [optionsMethod, setOptionsMethod] = useState<DropdownOptions>(() => methodOptions(api, rpcs, defaultValue.section));
+  const [optionsSection] = useState<DropdownOptions>(() => sectionOptions(api));
+  const [value, setValue] = useState<DefinitionRpcExt>((): DefinitionRpcExt => defaultValue);
 
-  const _onMethodChange = (newValue: RpcMethod): void => {
-    if (value.section === newValue.section && value.method === newValue.method) {
-      return;
-    }
+  useEffect((): void => {
+    onChange && onChange(value);
+  }, [onChange, value]);
 
-    // set via callback since the method is a function itself
-    setValue((): RpcMethod => newValue);
-    onChange && onChange(newValue);
-  };
-  const _onSectionChange = (section: string): void => {
-    if (section === value.section) {
-      return;
-    }
+  const _onMethodChange = useCallback(
+    (newValue: DefinitionRpcExt): void => {
+      if (value !== newValue) {
+        // set via callback since the method is a function itself
+        setValue(() => newValue);
+      }
+    },
+    [value]
+  );
 
-    const optionsMethod = methodOptions(api, section);
+  const _onSectionChange = useCallback(
+    (newSection: string): void => {
+      if (newSection !== value.section) {
+        const optionsMethod = methodOptions(api, rpcs, newSection);
 
-    setOptionsMethod(optionsMethod);
-    _onMethodChange(map[section].methods[optionsMethod[0].value]);
-  };
+        setOptionsMethod(optionsMethod);
+        _onMethodChange(rpcs[newSection][optionsMethod[0].value]);
+      }
+    },
+    [_onMethodChange, api, rpcs, value]
+  );
 
   return (
-    <div
+    <LinkedWrapper
       className={className}
-      style={style}
+      help={help}
+      label={label}
+      withLabel={withLabel}
     >
-      <Labelled
-        help={help}
-        label={label}
-        withLabel={withLabel}
-      >
-        <div className=' ui--DropdownLinked ui--row'>
-          <SelectSection
-            className='small'
-            onChange={_onSectionChange}
-            options={optionsSection}
-            value={value}
-          />
-          <SelectMethod
-            className='large'
-            onChange={_onMethodChange}
-            options={optionsMethod}
-            value={value}
-          />
-        </div>
-      </Labelled>
-    </div>
+      <SelectSection
+        className='small'
+        onChange={_onSectionChange}
+        options={optionsSection}
+        value={value}
+      />
+      <SelectMethod
+        className='large'
+        onChange={_onMethodChange}
+        options={optionsMethod}
+        value={value}
+      />
+    </LinkedWrapper>
   );
 }
 
-export default translate(InputRpc);
+export default React.memo(InputRpc);

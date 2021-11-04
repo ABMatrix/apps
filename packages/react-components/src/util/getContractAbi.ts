@@ -1,12 +1,14 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import type { AnyJson } from '@polkadot/types/types';
 
 import { Abi } from '@polkadot/api-contract';
+import { api } from '@polkadot/react-api';
 
-import getAddressMeta from './getAddressMeta';
+import { getAddressMeta } from './getAddressMeta';
 
-export default function getContractAbi (address: string | null): Abi | null {
+export function getContractAbi (address: string | null): Abi | null {
   if (!address) {
     return null;
   }
@@ -15,10 +17,11 @@ export default function getContractAbi (address: string | null): Abi | null {
   const meta = getAddressMeta(address, 'contract');
 
   try {
-    const data = meta.contract && JSON.parse(meta.contract.abi);
-    abi = new Abi(data);
+    const data = meta.contract && JSON.parse(meta.contract.abi) as AnyJson;
+
+    abi = new Abi(data, api.registry.getChainProperties());
   } catch (error) {
-    // invalid address, maybe
+    console.error(error);
   }
 
   return abi || null;

@@ -1,10 +1,10 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import styled from 'styled-components';
 
+import AccountName from '../AccountName';
 import IdentityIcon from '../IdentityIcon';
 
 interface Props {
@@ -15,19 +15,15 @@ interface Props {
   style?: Record<string, string>;
 }
 
-function KeyPair ({ address, className, isUppercase, name, style }: Props): React.ReactElement<Props> {
+function KeyPair ({ address, className = '' }: Props): React.ReactElement<Props> {
   return (
-    <div
-      className={['ui--KeyPair', className].join(' ')}
-      style={style}
-    >
+    <div className={`ui--KeyPair ${className}`}>
       <IdentityIcon
         className='icon'
-        size={32}
         value={address}
       />
-      <div className={`name ${isUppercase ? 'uppercase' : 'normalcase'}`}>
-        {name}
+      <div className='name'>
+        <AccountName value={address} />
       </div>
       <div className='address'>
         {address}
@@ -36,7 +32,7 @@ function KeyPair ({ address, className, isUppercase, name, style }: Props): Reac
   );
 }
 
-export default styled(KeyPair)`
+export default React.memo(styled(KeyPair)`
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
@@ -46,7 +42,7 @@ export default styled(KeyPair)`
   > .address {
     display: inline-block;
     flex: 1;
-    font-family: monospace;
+    font: var(--font-mono);
     margin-left: 1rem;
     opacity: 0.5;
     overflow: hidden;
@@ -56,7 +52,7 @@ export default styled(KeyPair)`
 
   > .icon {
     position: absolute;
-    top: -9px;
+    top: -5px;
     left: 0;
   }
 
@@ -71,4 +67,4 @@ export default styled(KeyPair)`
       text-transform: uppercase;
     }
   }
-`;
+`);

@@ -1,11 +1,11 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from './types';
-
-import React from 'react';
+import React, { useContext } from 'react';
 import store from 'store';
+import styled, { ThemeContext } from 'styled-components';
+
+import { ThemeDef } from '@polkadot/react-components/types';
 
 import Dropdown from './Dropdown';
 
@@ -15,8 +15,9 @@ interface Option {
   value: string;
 }
 
-interface Props extends BareProps {
+interface Props {
   allowAdd?: boolean;
+  className?: string;
   defaultValue?: string[];
   help?: React.ReactNode;
   isDisabled?: boolean;
@@ -33,7 +34,7 @@ interface Props extends BareProps {
 }
 
 function loadTags (): string[] {
-  return store.get('tags') || ['Default'];
+  return ((store.get('tags') as string[]) || ['Default']).sort();
 }
 
 function valueToOption (value: string): Option {
@@ -44,21 +45,24 @@ const tags = loadTags();
 const options = tags.map(valueToOption);
 
 function saveTags (tags: string[]): void {
-  store.set('tags', tags);
+  store.set('tags', tags.sort());
 }
 
 function onAddTag (value: string): void {
   tags.push(value);
+
   options.push(valueToOption(value));
 
   saveTags(tags);
 }
 
-export default function InputTags ({ className, defaultValue, help, isDisabled, isError, label, onBlur, onChange, onClose, placeholder, searchInput, value, withLabel }: Props): React.ReactElement<Props> {
+function InputTags ({ allowAdd = true, className = '', defaultValue, help, isDisabled, isError, label, onBlur, onChange, onClose, placeholder, searchInput, value, withLabel }: Props): React.ReactElement<Props> {
+  const { theme } = useContext(ThemeContext as React.Context<ThemeDef>);
+
   return (
     <Dropdown
-      allowAdd={!isDisabled}
-      className={className}
+      allowAdd={allowAdd && !isDisabled}
+      className={`ui--InputTags ${theme}Theme ${className}`}
       defaultValue={defaultValue}
       help={help}
       isDisabled={isDisabled}
@@ -77,3 +81,29 @@ export default function InputTags ({ className, defaultValue, help, isDisabled, 
     />
   );
 }
+
+export default React.memo(styled(InputTags)`
+  && .ui.label {
+    border: none;
+    border-radius: 0.25rem;
+    box-shadow: none;
+    color: #fff;
+    display: inline-block;
+    font-size: 0.857rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.143rem;
+    margin: 0.125rem 0.125rem;
+    padding: 0.571em 0.857em;
+    position: relative;
+    white-space: nowrap;
+    z-index: 1;
+
+    .delete.icon::before {
+      content: '\u2715';
+    }
+  }
+
+  &&.darkTheme .ui.label {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+`);

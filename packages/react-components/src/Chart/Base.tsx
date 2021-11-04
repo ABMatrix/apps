@@ -1,17 +1,10 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from '../types';
+import type { BaseProps } from './types';
 
 import React from 'react';
 import styled from 'styled-components';
-
-import { classes } from '../util';
-
-interface Props extends BareProps {
-  children: React.ReactNode;
-}
 
 const Wrapper = styled.div`
   position: relative;
@@ -21,13 +14,12 @@ const Wrapper = styled.div`
   width: 15vw;
 `;
 
-export default function BaseChart ({ children, className, style }: Props): React.ReactElement<Props> {
+function BaseChart ({ children, className = '' }: BaseProps): React.ReactElement<BaseProps> {
   return (
-    <Wrapper
-      className={classes('ui--Chart', className)}
-      style={style}
-    >
+    <Wrapper className={`ui--Chart ${className}`}>
       {children}
     </Wrapper>
   );
 }
+
+export default React.memo(BaseChart);

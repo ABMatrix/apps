@@ -1,33 +1,32 @@
-// Copyright 2017-2019 @polkadot/app-extrinsics authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/app-extrinsics authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Props, RawParam } from '@polkadot/react-params/types';
+import type { Props, RawParam } from '@polkadot/react-params/types';
 
-import React, { useContext } from 'react';
-import { createType } from '@polkadot/types';
-import { ApiContext } from '@polkadot/react-api';
+import React, { useCallback } from 'react';
+
+import { useApi } from '@polkadot/react-hooks';
 
 import ExtrinsicDisplay from './Extrinsic';
 
-function onChange ({ onChange }: Props): (_: RawParam) => void {
-  return function ({ isValid, value }: RawParam): void {
-    let proposal = null;
+function ProposalDisplay ({ className = '', isDisabled, isError, label, onChange, onEnter, onEscape, withLabel }: Props): React.ReactElement<Props> {
+  const { api, apiDefaultTxSudo } = useApi();
 
-    if (isValid && value) {
-      proposal = createType('Proposal', value);
-    }
+  const _onChange = useCallback(
+    ({ isValid, value }: RawParam): void => {
+      let proposal = null;
 
-    onChange && onChange({
-      isValid,
-      value: proposal
-    });
-  };
-}
+      if (isValid && value) {
+        proposal = api.createType('Proposal', value);
+      }
 
-export default function ProposalDisplay (props: Props): React.ReactElement<Props> {
-  const { apiDefaultTxSudo } = useContext(ApiContext);
-  const { className, isDisabled, isError, label, onEnter, style, withLabel } = props;
+      onChange && onChange({
+        isValid,
+        value: proposal
+      });
+    },
+    [api, onChange]
+  );
 
   return (
     <ExtrinsicDisplay
@@ -37,10 +36,12 @@ export default function ProposalDisplay (props: Props): React.ReactElement<Props
       isError={isError}
       isPrivate
       label={label}
-      onChange={onChange(props)}
+      onChange={_onChange}
       onEnter={onEnter}
-      style={style}
+      onEscape={onEscape}
       withLabel={withLabel}
     />
   );
 }
+
+export default React.memo(ProposalDisplay);

@@ -1,10 +1,10 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import type { ThemeProps } from '../types';
 
 import { createGlobalStyle } from 'styled-components';
 
-import media from '../media';
 import cssComponents from './components';
 import cssForm from './form';
 import cssMedia from './media';
@@ -12,10 +12,356 @@ import cssRx from './rx';
 import cssSemantic from './semantic';
 import cssTheme from './theme';
 
-export default createGlobalStyle`
+interface Props {
+  uiHighlight?: string;
+}
+
+const BRIGHTNESS = 128 + 32;
+const FACTORS = [0.2126, 0.7152, 0.0722];
+const PARTS = [0, 2, 4];
+const VERY_DARK = 16;
+
+const defaultHighlight = '#f19135'; // '#f19135'; // #999
+
+function getHighlight (uiHighlight: string | undefined): string {
+  return (uiHighlight || defaultHighlight);
+}
+
+function countBrightness (uiHighlight: string | undefined): number {
+  const hc = getHighlight(uiHighlight).replace('#', '').toLowerCase();
+
+  return PARTS.reduce((b, p, index) => b + (parseInt(hc.substr(p, 2), 16) * FACTORS[index]), 0);
+}
+
+function getContrast (uiHighlight: string | undefined): string {
+  const brightness = countBrightness(uiHighlight);
+
+  return brightness > BRIGHTNESS
+    ? 'rgba(45, 43, 41, 0.875)'
+    : 'rgba(255, 253, 251, 0.875)';
+}
+
+function getMenuHoverContrast (uiHighlight: string | undefined): string {
+  const brightness = countBrightness(uiHighlight);
+
+  if (brightness < VERY_DARK) {
+    return 'rgba(255, 255, 255, 0.15)';
+  }
+
+  return brightness < BRIGHTNESS
+    ? 'rgba(0, 0, 0, 0.15)'
+    : 'rgba(255, 255, 255, 0.15)';
+}
+
+function hexToRGB (hex: string, alpha?: string) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+
+  return alpha
+    ? `rgba(${r}, ${g}, ${b}, ${alpha})`
+    : `rgb(${r}, ${g}, ${b})`;
+}
+
+export default createGlobalStyle<Props & ThemeProps>(({ theme, uiHighlight }: Props & ThemeProps) => `
+  .highlight--all {
+    background: ${getHighlight(uiHighlight)} !important;
+    border-color: ${getHighlight(uiHighlight)} !important;
+    color: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--before:before {
+    background: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--before-border:before {
+    border-color: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--bg {
+    background: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--bg-contrast {
+    background: ${getContrast(uiHighlight)};
+  }
+
+  .ui--MenuItem.isActive .ui--Badge {
+    background: ${getHighlight(uiHighlight)};
+    color: ${getContrast(uiHighlight)} !important;
+  }
+
+  .ui--MenuItem {
+    & .ui--Badge {
+      color: ${countBrightness(uiHighlight) < BRIGHTNESS ? '#fff' : '#424242'};
+    }
+
+    &:hover:not(.isActive) .ui--Badge {
+      background: ${countBrightness(uiHighlight) < BRIGHTNESS ? 'rgba(255, 255, 255, 0.8)' : '#4D4D4D'};
+      color: ${countBrightness(uiHighlight) > BRIGHTNESS ? '#fff' : '#424242'};
+    }
+  }
+
+  .ui--Tab .ui--Badge {
+    background: ${getHighlight(uiHighlight)};
+    color: ${countBrightness(uiHighlight) < BRIGHTNESS ? '#fff' : '#424242'};
+  }
+
+  .highlight--bg-faint,
+  .highlight--bg-light {
+    background: var(--bg-table);
+    position: relative;
+
+    &:before {
+      background: ${getHighlight(uiHighlight)};
+      bottom: 0;
+      content: ' ';
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: -1;
+    }
+  }
+
+  .highlight--bg-faint:before {
+    opacity: 0.025;
+  }
+
+  .highlight--bg-light:before {
+    opacity: 0.2;
+  }
+
+  .highlight--border {
+    border-color: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--color {
+    color: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--color-contrast {
+    color: ${getContrast(uiHighlight)};
+  }
+
+  .highlight--fill {
+    fill: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--gradient {
+    background: ${`linear-gradient(90deg, ${uiHighlight || defaultHighlight}, transparent)`};
+  }
+
+  .ui--MenuItem.topLevel:hover,
+  .ui--MenuItem.isActive.topLevel:hover {
+    color: ${getContrast(uiHighlight)};
+
+    a {
+      background-color: ${getMenuHoverContrast(uiHighlight)};
+    }
+  }
+
+  .menuItems li:hover .groupHdr {
+    background: ${getMenuHoverContrast(uiHighlight)};
+    color: ${getContrast(uiHighlight)};
+  }
+
+  .groupMenu {
+    background: ${getHighlight(uiHighlight)} !important;
+
+    &::before {
+      background: ${getMenuHoverContrast(uiHighlight)};
+      color:  ${getContrast(uiHighlight)};
+    }
+    li {
+      color:  ${getContrast(uiHighlight)};
+    }
+  }
+
+  .highlight--hover-bg:hover {
+    background: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--hover-color:hover {
+    color: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--icon {
+    .ui--Icon {
+      color: ${getHighlight(uiHighlight)} !important;
+    }
+  }
+
+  .highlight--shadow {
+    box-shadow: 0 0 1px ${getHighlight(uiHighlight)} !important;
+  }
+
+  .highlight--stroke {
+    stroke: ${getHighlight(uiHighlight)} !important;
+  }
+
+  .ui--Button {
+    &:not(.isDisabled):not(.isIcon):not(.isBasic),
+    &.withoutLink:not(.isDisabled) {
+      .ui--Icon {
+        background: ${getHighlight(uiHighlight)};
+        color: ${getContrast(uiHighlight)};
+      }
+    }
+
+    &.isBasic:not(.isDisabled):not(.isIcon):not(.isSelected) {
+      &:not(.isReadOnly) {
+        box-shadow: 0 0 1px ${getHighlight(uiHighlight)};
+      }
+
+      .ui--Icon {
+        color: ${getHighlight(uiHighlight)};
+      }
+    }
+
+    &.isSelected {
+      box-shadow: 0 0 1px ${getHighlight(uiHighlight)};
+    }
+
+    &:hover:not(.isDisabled):not(.isReadOnly),
+    &.isSelected {
+      background: ${getHighlight(uiHighlight)};
+      color: ${getContrast(uiHighlight)};
+      text-shadow: none;
+
+      &:not(.isIcon),
+      &.withoutLink {
+        .ui--Icon {
+          color: inherit;
+        }
+      }
+    }
+  }
+
+  .ui--Table td .ui--Button {
+    &:not(.isDisabled):not(.isIcon):not(.isToplevel),
+    &.withoutLink:not(.isDisabled) {
+      &:hover {
+        .ui--Icon {
+          color: ${getContrast(uiHighlight)};
+        }
+      }
+
+      .ui--Icon {
+        background: transparent;
+        color: inherit;
+        color: ${getHighlight(uiHighlight)};
+      }
+    }
+  }
+
+  .ui--Popup .ui--Button.isOpen:not(.isDisabled):not(.isReadOnly) {
+    background: ${getHighlight(uiHighlight)} !important;
+    color: ${getContrast(uiHighlight)} !important;
+
+    .ui--Icon {
+      background: transparent !important;
+      color: ${getContrast(uiHighlight)} !important;
+    }
+  }
+
+
+  .ui--Menu {
+    .ui--Menu__Item:hover {
+       background: ${hexToRGB(getHighlight(uiHighlight), '.1')};
+    }
+
+    .ui--Toggle.isChecked .ui--Toggle-Slider {
+      background: ${getHighlight(uiHighlight)};
+
+      &::before {
+        border-color: ${getHighlight(uiHighlight)};
+      }
+    }
+  }
+
+  .ui--Sort {
+    .ui--Labelled.ui--Dropdown:hover {
+     .ui.selection.dropdown {
+        border-color: ${getHighlight(uiHighlight)};
+
+       .visible.menu {
+         border: 1px solid ${getHighlight(uiHighlight)};
+        }
+      }
+    }
+
+    button:hover {
+      border-color: ${getHighlight(uiHighlight)};
+    }
+
+    button:hover,
+    .ui--Labelled.ui--Dropdown:hover {
+      &::after {
+        background-color:  ${getHighlight(uiHighlight)};
+      }
+    }
+
+    .arrow.isActive {
+      color:  ${getHighlight(uiHighlight)};
+      opacity: 1;
+    }
+  }
+
+  .theme--dark,
+  .theme--light {
+    .ui--Tabs .tabLinkActive .tabLinkText::after{
+        background: ${getHighlight(uiHighlight)};
+    }
+
+    .ui.primary.button,
+    .ui.buttons .primary.button {
+      background: ${getHighlight(uiHighlight)};
+
+      &.active,
+      &:active,
+      &:focus,
+      &:hover {
+        background-color: ${getHighlight(uiHighlight)};
+      }
+    }
+
+    .ui--Toggle.isChecked {
+      &:not(.isRadio) {
+        .ui--Toggle-Slider {
+          background: ${getHighlight(uiHighlight)} !important;
+
+          &:before {
+            border-color: ${getHighlight(uiHighlight)} !important;
+          }
+        }
+      }
+    }
+  }
+
+  .ui--ExpandButton:hover {
+    border-color: ${getHighlight(uiHighlight)} !important;
+
+    .ui--Icon {
+      color: ${getHighlight(uiHighlight)} !important;
+    }
+  }
+
+  .ui--Tag.themeColor.lightTheme,
+  .ui--InputTags.lightTheme .ui.label {
+    background: ${hexToRGB(getHighlight(uiHighlight), '0.08')};
+    color: ${countBrightness(uiHighlight) > BRIGHTNESS ? '#424242' : getHighlight(uiHighlight)};
+  }
+
+  .ui--Tag.themeColor.darkTheme,
+  .ui--InputTags.darkTheme .ui.label {
+    color: ${countBrightness(uiHighlight) > BRIGHTNESS ? getHighlight(uiHighlight) : '#fff'};
+  }
+
   #root {
-    color: #4e4e4e;
-    font-family: sans-serif;
+    background: var(--bg-page);
+    color: var(--color-text);
+    font: var(--font-sans);
     height: 100%;
   }
 
@@ -24,7 +370,7 @@ export default createGlobalStyle`
   }
 
   article {
-    background: white;
+    background: var(--bg-table);
     border: 1px solid #f2f2f2;
     border-radius: 0.25rem;
     box-sizing: border-box;
@@ -33,28 +379,6 @@ export default createGlobalStyle`
     position: relative;
     text-align: left;
 
-    &:hover {
-      /* box-shadow: 0 4px 8px rgba(0,0,0,0.1); */
-      /* box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-      border-color: transparent; */
-    }
-
-    &:not(:hover) {
-      .ui.button:not(.disabled) {
-        background: #eee !important;
-        color: #555 !important;
-      }
-
-      .ui.toggle.checkbox input:checked~.box:before,
-      .ui.toggle.checkbox input:checked~label:before {
-        background-color: #eee !important;
-      }
-
-      .ui.button.mini {
-        visibility: hidden;
-      }
-    }
-
     > ul {
       margin: 0;
       padding: 0;
@@ -62,13 +386,53 @@ export default createGlobalStyle`
 
     &.error,
     &.warning {
+      border-left-width: 0.25rem;
+      line-height: 1.5;
       margin-left: 2.25rem;
+      padding: 0.75rem 1rem;
+      position: relative;
+      z-index: 5;
+
+      &:before {
+        border-radius: 0.25rem;
+        bottom: 0;
+        content: ' ';
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: -1;
+      }
+    }
+
+    &.mark {
+      margin: 0.5rem 0 0.5rem 2.25rem;
+      padding: 0.5rem 1rem !important;
+    }
+
+    &.nomargin {
+      margin-left: 0;
+    }
+
+    &.extraMargin {
+      margin: 2rem auto;
+    }
+
+    &.centered {
+      margin: 1.5rem auto;
+      max-width: 75rem;
+
+      &+.ui--Button-Group {
+        margin-top: 2rem;
+      }
     }
 
     &.error {
-      background: #fff6f6;
-      border-color: #e0b4b4;
-      color: #9f3a38;
+      &:before {
+        background: rgba(255, 12, 12, 0.05);
+      }
+
+      border-color: rgba(255, 12, 12, 1);
     }
 
     &.padded {
@@ -80,14 +444,18 @@ export default createGlobalStyle`
     }
 
     &.warning {
-      background: #ffffe0;
-      border-color: #eeeeae;
+      &:before {
+        background: rgba(255, 196, 12, 0.05);
+      }
+
+      border-color: rgba(255, 196, 12, 1);
     }
   }
 
   body {
     height: 100%;
     margin: 0;
+    font: var(--font-sans);
   }
 
   br {
@@ -118,12 +486,14 @@ export default createGlobalStyle`
   }
 
   h1, h2, h3, h4, h5 {
-    color: rgba(0, 0, 0, .6);
-    font-family: sans-serif;
-    font-weight: 100;
+    color: var(--color-summary);
+    font: var(--font-sans);
+    font-weight: var(--font-weight-light);
+    margin-bottom: 0.25rem;
   }
 
   h1 {
+    font-size: 1.75rem;
     text-transform: lowercase;
 
     em {
@@ -132,17 +502,13 @@ export default createGlobalStyle`
     }
   }
 
-  h3, h4, h5 {
-    margin-bottom: 0.25rem;
+  h2 {
+    font-size: 1.71428571rem;
   }
 
   header {
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.5rem;
     text-align: center;
-
-    ${media.TABLET`
-      margin-bottom: 2rem;
-   `}
 
     > article {
       background: transparent;
@@ -155,26 +521,24 @@ export default createGlobalStyle`
 
   label {
     box-sizing: border-box;
-    color: rgba(78,78,78,.85);
+    color: var(--color-label);
     display: block;
-    font-family: sans-serif;
+    font: var(--font-sans);
     font-size: 1rem;
-    font-weight: 100;
+    font-weight: var(--font-weight-normal);
   }
 
   main {
-    min-height: 100vh;
-
     > section {
       margin-bottom: 2em;
     }
   }
 
   /* Add our overrides */
-  ${cssSemantic}
+  ${cssSemantic(theme)}
   ${cssTheme}
   ${cssForm}
   ${cssMedia}
   ${cssRx}
-  ${cssComponents}
-`;
+  ${cssComponents(theme)}
+`);

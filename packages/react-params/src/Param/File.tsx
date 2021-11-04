@@ -1,15 +1,14 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
-
-import { BareProps } from '@polkadot/react-components/types';
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
+
 import { InputFile } from '@polkadot/react-components';
 
 import Bare from './Bare';
 
-interface Props extends BareProps {
+interface Props {
+  className?: string;
   defaultValue?: any;
   isDisabled?: boolean;
   isError?: boolean;
@@ -19,14 +18,10 @@ interface Props extends BareProps {
   withLabel?: boolean;
 }
 
-export default function File ({ className, isDisabled, isError = false, label, onChange, placeholder, style, withLabel }: Props): React.ReactElement<Props> {
+function File ({ className = '', isDisabled, isError = false, label, onChange, placeholder, withLabel }: Props): React.ReactElement<Props> {
   return (
-    <Bare
-      className={className}
-      style={style}
-    >
+    <Bare className={className}>
       <InputFile
-        convertHex
         isDisabled={isDisabled}
         isError={isError}
         label={label}
@@ -38,3 +33,5 @@ export default function File ({ className, isDisabled, isError = false, label, o
     </Bare>
   );
 }
+
+export default React.memo(File);

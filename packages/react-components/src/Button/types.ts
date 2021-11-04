@@ -1,46 +1,43 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from '../types';
+import type { IconName } from '@fortawesome/fontawesome-svg-core';
+import type { BareProps } from '../types';
 
-export type Button$Sizes = 'mini' | 'tiny' | 'small' | 'medium' | 'large' | 'big' | 'huge' | 'massive';
+export type Button$Callback = () => void | Promise<void>;
 
-export interface ButtonProps extends BareProps {
+export interface ButtonProps {
+  activeOnEnter?: boolean;
   children?: React.ReactNode;
-  floated?: 'left' | 'right';
-  icon: string;
+  className?: string;
+  dataTestId?: string;
+  icon?: IconName;
   isBasic?: boolean;
+  isBusy?: boolean;
   isCircular?: boolean;
   isDisabled?: boolean;
-  isFluid?: boolean;
-  isLoading?: boolean;
-  isNegative?: boolean;
-  isPositive?: boolean;
-  isPrimary?: boolean;
+  isFull?: boolean;
+  isIcon?: boolean;
+  isReadOnly?: boolean;
+  isSelected?: boolean;
+  isToplevel?: boolean;
   label?: React.ReactNode;
-  labelPosition?: 'left' | 'right';
-  onClick?: () => void | Promise<void>;
-  ref?: any;
-  size?: Button$Sizes;
+  onClick?: Button$Callback;
+  onMouseEnter?: Button$Callback;
+  onMouseLeave?: Button$Callback;
   tabIndex?: number;
   tooltip?: React.ReactNode;
+  withoutLink?: boolean;
 }
 
 export type DividerProps = BareProps;
 
-export interface GroupProps extends BareProps {
+export interface GroupProps {
   children?: React.ReactNode;
-  isBasic?: boolean;
+  className?: string;
   isCentered?: boolean;
 }
 
-export type GroupType = React.ComponentType<GroupProps> & {
-  Divider: React.ComponentType<DividerProps>;
-};
-
 export type ButtonType = React.ComponentType<ButtonProps> & {
-  Divider: React.ComponentType<DividerProps>;
-  Group: GroupType;
-  Or: React.ComponentType<BareProps>;
+  Group: React.ComponentType<GroupProps>;
 };

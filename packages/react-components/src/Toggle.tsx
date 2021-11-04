@@ -1,53 +1,109 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from './types';
-
-import React from 'react';
-import SUICheckbox from 'semantic-ui-react/dist/commonjs/modules/Checkbox';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
-interface Props extends BareProps {
-  asSwitch?: boolean;
-  defaultValue?: boolean;
+interface Props {
+  className?: string;
   isDisabled?: boolean;
+  isOverlay?: boolean;
+  isRadio?: boolean;
   label: React.ReactNode;
   onChange?: (isChecked: boolean) => void;
+  preventDefault?: boolean;
   value?: boolean;
 }
 
-function Toggle ({ className, asSwitch = true, defaultValue, isDisabled, onChange, value, label }: Props): React.ReactElement<Props> {
-  const _onChange = (_: React.FormEvent<HTMLInputElement>, { checked }: any): void => {
-    onChange && onChange(checked);
-  };
+function Toggle ({ className = '', isDisabled, isOverlay, isRadio, label, onChange, preventDefault, value }: Props): React.ReactElement<Props> {
+  const _onClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+      if (!isDisabled) {
+        if (preventDefault) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        onChange && onChange(!value);
+      }
+    },
+    [isDisabled, onChange, preventDefault, value]
+  );
 
   return (
-    <div className={className}>
-      <label>{label}</label>
-      <SUICheckbox
-        checked={value}
-        disabled={isDisabled}
-        defaultChecked={defaultValue}
-        onChange={_onChange}
-        toggle={asSwitch}
-      />
+    <div
+      className={`ui--Toggle${value ? ' isChecked' : ''}${isDisabled ? ' isDisabled' : ''}${isOverlay ? ' isOverlay' : ''}${isRadio ? ' isRadio' : ''} ${className}`}
+      onClick={_onClick}
+    >
+      {label && <label>{label}</label>}
+      <div className={`ui--Toggle-Slider${isRadio ? ' highlight--before-border' : ''}`} />
     </div>
   );
 }
 
-export default styled(Toggle)`
+export default React.memo(styled(Toggle)`
   > label {
     display: inline-block;
     margin: 0 0.5rem;
   }
 
   > label,
-  > .ui.checkbox {
+  > div {
     vertical-align: middle;
   }
 
-  .ui.checkbox + label {
-    color: rgba(78, 78, 78, 0.75);
+  .ui--Toggle-Slider {
+    background: var(--bg-toggle);
+    border-radius: 1.5rem;
+    display: inline-block;
+    height: 1.5rem;
+    position: relative;
+    width: 3rem;
+
+    &::before {
+      background: var(--bg-table);
+      border: 0.125rem solid var(--bg-toggle);
+      border-radius: 50%;
+      content: "";
+      height: 1.5rem;
+      left: 0;
+      position: absolute;
+      top: 0;
+      width: 1.5rem;
+    }
   }
-`;
+
+  &:not(.isDisabled) {
+    cursor: pointer;
+
+    > label {
+      cursor: pointer;
+    }
+  }
+
+  &.isChecked {
+    &:not(.isRadio) {
+      .ui--Toggle-Slider:before {
+        transform: translateX(1.5rem);
+      }
+    }
+
+    &.isRadio {
+      .ui--Toggle-Slider:before {
+        border-width: 0.5rem;
+      }
+    }
+  }
+
+  &.isRadio {
+    .ui--Toggle-Slider {
+      width: 1.5rem;
+    }
+  }
+
+  &.isOverlay {
+    bottom: 1.375rem;
+    position: absolute;
+    right: 3.5rem;
+  }
+`);

@@ -1,27 +1,23 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Contracts from '@polkadot/app-contracts';
+import Component from '@polkadot/app-contracts';
 
-export default ([
-  {
-    Component: Contracts,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsAccounts: true,
       needsApi: [
-        [
-          'tx.contracts.call', // substrate 2.x
-          'tx.contract.call' // substrate 1.x
-        ]
+        'tx.contracts.instantiateWithCode'
       ]
     },
-    i18n: {
-      defaultValue: 'Contracts'
-    },
+    group: 'developer',
     icon: 'compress',
-    name: 'contracts'
-  }
-] as Routes);
+    name: 'contracts',
+    text: t('nav.contracts', 'Contracts', { ns: 'apps-routing' })
+  };
+}

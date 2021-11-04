@@ -1,78 +1,65 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routing, Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Routes } from './types';
 
-import appSettings from '@polkadot/ui-settings';
-
-import template from './123code';
 import accounts from './accounts';
-import addressbook from './addressbook';
+import addresses from './addresses';
+import assets from './assets';
+import bounties from './bounties';
+import calendar from './calendar';
 import claims from './claims';
 import contracts from './contracts';
 import council from './council';
-// import dashboard from './dashboard';
 import democracy from './democracy';
 import explorer from './explorer';
 import extrinsics from './extrinsics';
-import genericAsset from './generic-asset';
+import gilt from './gilt';
 import js from './js';
+import membership from './membership';
 import parachains from './parachains';
+import poll from './poll';
+import rpc from './rpc';
 import settings from './settings';
+import signing from './signing';
+import society from './society';
 import staking from './staking';
 import storage from './storage';
 import sudo from './sudo';
-import toolbox from './toolbox';
+import techcomm from './techcomm';
+import teleport from './teleport';
 import transfer from './transfer';
 import treasury from './treasury';
 
-const routes: Routes = appSettings.uiMode === 'light'
-  ? ([] as Routes).concat(
-    // dashboard,
-    explorer,
-    accounts,
-    addressbook,
-    claims,
-    transfer,
-    genericAsset,
-    null,
-    staking,
-    democracy,
-    council,
-    // TODO Not sure about the inclusion of treasury & parachains here
-    null,
-    settings
-  )
-  : ([] as Routes).concat(
-    // dashboard,
-    explorer,
-    accounts,
-    addressbook,
-    claims,
-    transfer,
-    genericAsset,
-    null,
-    staking,
-    democracy,
-    council,
-    treasury,
-    parachains,
-    null,
-    contracts,
-    storage,
-    extrinsics,
-    sudo,
-    null,
-    settings,
-    toolbox,
-    js,
-    template
-  );
-
-const setup: Routing = {
-  default: 'explorer',
-  routes
-};
-
-export default setup;
+export default function create (t: TFunction): Routes {
+  return [
+    accounts(t),
+    addresses(t),
+    explorer(t),
+    claims(t),
+    poll(t),
+    transfer(t),
+    teleport(t),
+    staking(t),
+    democracy(t),
+    council(t),
+    treasury(t),
+    bounties(t),
+    techcomm(t),
+    membership(t),
+    parachains(t),
+    gilt(t),
+    assets(t),
+    society(t),
+    calendar(t),
+    contracts(t),
+    storage(t),
+    extrinsics(t),
+    rpc(t),
+    signing(t),
+    sudo(t),
+    js(t),
+    settings(t)
+  ];
+}

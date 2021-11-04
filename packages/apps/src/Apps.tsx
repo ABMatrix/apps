@@ -1,89 +1,57 @@
-// Copyright 2017-2019 @polkadot/apps authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps as Props } from '@polkadot/react-components/types';
+import type { BareProps as Props, ThemeDef } from '@polkadot/react-components/types';
 
-// this is disabled, Chrome + WASM memory leak makes it slow & laggy. If enabled
-// we also need to export the default as hot(Apps) (last line)
-// import { hot } from 'react-hot-loader/root';
+import React, { useContext, useMemo } from 'react';
+import styled, { ThemeContext } from 'styled-components';
 
-import React, { useState } from 'react';
-import store from 'store';
-import styled from 'styled-components';
+import AccountSidebar from '@polkadot/app-accounts/Sidebar';
+import { getSystemColor } from '@polkadot/apps-config';
 import GlobalStyle from '@polkadot/react-components/styles';
+import { useApi } from '@polkadot/react-hooks';
 import Signer from '@polkadot/react-signer';
 
 import ConnectingOverlay from './overlays/Connecting';
-import AccountsOverlay from './overlays/Accounts';
-import { SideBarTransition, SIDEBAR_MENU_THRESHOLD } from './constants';
 import Content from './Content';
-import SideBar from './SideBar';
+import Menu from './Menu';
+import WarmUp from './WarmUp';
 
-interface SidebarState {
-  isCollapsed: boolean;
-  isMenu: boolean;
-  menuOpen: boolean;
-  transition: SideBarTransition;
-}
+export const PORTAL_ID = 'portals';
 
-function Apps ({ className }: Props): React.ReactElement<Props> {
-  const [sidebar, setSidebar] = useState<SidebarState>({
-    isCollapsed: false,
-    transition: SideBarTransition.COLLAPSED,
-    ...store.get('sidebar', {}),
-    menuOpen: false,
-    isMenu: window.innerWidth < SIDEBAR_MENU_THRESHOLD
-  });
+function Apps ({ className = '' }: Props): React.ReactElement<Props> {
+  const { theme } = useContext(ThemeContext as React.Context<ThemeDef>);
+  const { isDevelopment, specName, systemChain, systemName } = useApi();
 
-  const { isCollapsed, isMenu, menuOpen } = sidebar;
-
-  const _setSidebar = (update: Partial<SidebarState>): void =>
-    setSidebar(store.set('sidebar', { ...sidebar, ...update }));
-  const _collapse = (): void =>
-    _setSidebar({ isCollapsed: !isCollapsed });
-  const _toggleMenu = (): void =>
-    _setSidebar({ isCollapsed: false, menuOpen: true });
-  const _handleResize = (): void => {
-    const transition = window.innerWidth < SIDEBAR_MENU_THRESHOLD
-      ? SideBarTransition.MINIMISED_AND_EXPANDED
-      : SideBarTransition.EXPANDED_AND_MAXIMISED;
-
-    _setSidebar({
-      isMenu: transition === SideBarTransition.MINIMISED_AND_EXPANDED,
-      menuOpen: false,
-      transition
-    });
-  };
+  const uiHighlight = useMemo(
+    () => isDevelopment
+      ? undefined
+      : getSystemColor(systemChain, systemName, specName),
+    [isDevelopment, specName, systemChain, systemName]
+  );
 
   return (
     <>
-      <GlobalStyle />
-      <div className={`apps-Wrapper ${isCollapsed ? 'collapsed' : 'expanded'} ${isMenu && 'fixed'} ${menuOpen && 'menu-open'} theme--default ${className}`}>
-        <div
-          className={`apps-Menu-bg ${menuOpen ? 'open' : 'closed'}`}
-          onClick={_handleResize}
-        />
-        <SideBar
-          collapse={_collapse}
-          handleResize={_handleResize}
-          menuOpen={menuOpen}
-          isCollapsed={isCollapsed}
-          toggleMenu={_toggleMenu}
-        />
-        <Signer>
-          <Content />
-        </Signer>
-        <ConnectingOverlay />
-        <AccountsOverlay />
+      <GlobalStyle uiHighlight={uiHighlight} />
+      <div className={`apps--Wrapper theme--${theme} ${className}`}>
+        <Menu />
+        <AccountSidebar>
+          <Signer>
+            <Content />
+          </Signer>
+          <ConnectingOverlay />
+          <div id={PORTAL_ID} />
+        </AccountSidebar>
       </div>
+      <WarmUp />
     </>
   );
 }
 
-export default styled(Apps)`
-  align-items: stretch;
+export default React.memo(styled(Apps)`
+  background: var(--bg-page);
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-`;
+`);

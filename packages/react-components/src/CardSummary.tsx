@@ -1,34 +1,36 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from './types';
+import type BN from 'bn.js';
+import type { UInt } from '@polkadot/types';
 
-import BN from 'bn.js';
 import React from 'react';
 import styled from 'styled-components';
-import { UInt } from '@polkadot/types';
-import { formatNumber, isUndefined } from '@polkadot/util';
 
-import Progress, { Colors as ProgressColors } from './Progress';
+import { BlockToTime } from '@polkadot/react-query';
+import { BN_HUNDRED, formatNumber, isUndefined } from '@polkadot/util';
+
 import Labelled from './Labelled';
+import Progress from './Progress';
 
 interface ProgressProps {
-  color?: ProgressColors;
+  hideGraph?: boolean;
   hideValue?: boolean;
   isPercent?: boolean;
   total?: BN | UInt;
   value?: BN | UInt;
+  withTime?: boolean;
 }
 
-interface Props extends BareProps {
+interface Props {
   children?: React.ReactNode;
+  className?: string;
   help?: React.ReactNode;
   label: React.ReactNode;
   progress?: ProgressProps;
 }
 
-function CardSummary ({ children, className, help, label, progress }: Props): React.ReactElement<Props> | null {
+function CardSummary ({ children, className = '', help, label, progress }: Props): React.ReactElement<Props> | null {
   const value = progress && progress.value;
   const total = progress && progress.total;
   const left = progress && !isUndefined(value) && !isUndefined(total) && value.gten(0) && total.gtn(0)
@@ -41,7 +43,7 @@ function CardSummary ({ children, className, help, label, progress }: Props): Re
         }`
         : (
           progress.isPercent
-            ? value.muln(100).div(total).toString()
+            ? value.mul(BN_HUNDRED).div(total).toString()
             : formatNumber(value)
         )
     )
@@ -51,8 +53,14 @@ function CardSummary ({ children, className, help, label, progress }: Props): Re
     return null;
   }
 
+  const isTimed = progress && progress.withTime && !isUndefined(progress.total);
+  const testidSuffix = (label ?? '').toString();
+
   return (
-    <article className={className}>
+    <article
+      className={className}
+      data-testid={`card-summary:${testidSuffix}`}
+    >
       <Labelled
         help={help}
         isSmall
@@ -60,42 +68,65 @@ function CardSummary ({ children, className, help, label, progress }: Props): Re
       >
         {children}{
           progress && !progress.hideValue && (
-            !left || isUndefined(progress.total)
-              ? '-'
-              : `${left}${progress.isPercent ? '' : '/'}${
-                progress.isPercent
-                  ? '%'
-                  : formatNumber(progress.total)
-              }`
+            <>
+              {isTimed && !children && (
+                <BlockToTime value={progress.total} />
+              )}
+              <div className={isTimed ? 'isSecondary' : 'isPrimary'}>
+                {!left || isUndefined(progress.total)
+                  ? '-'
+                  : !isTimed || progress.isPercent || !progress.value
+                    ? `${left}${progress.isPercent ? '' : '/'}${
+                      progress.isPercent
+                        ? '%'
+                        : formatNumber(progress.total)
+                    }`
+                    : (
+                      <BlockToTime
+                        className='timer'
+                        value={progress.total.sub(progress.value)}
+                      />
+                    )
+                }
+              </div>
+            </>
           )
         }
-        {progress && <Progress {...progress} />}
       </Labelled>
+      {progress && !progress.hideGraph && <Progress {...progress} />}
     </article>
   );
 }
 
-export default styled(CardSummary)`
+export default React.memo(styled(CardSummary)`
   align-items: center;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--color-summary);
   display: flex;
   flex: 0 1 auto;
   flex-flow: row wrap;
   justify-content: flex-end;
-  padding: 0rem 1.5rem 0.5rem 1.5rem;
+  padding: 0 1.5rem;
 
-  > div {
-    font-size: 2.1rem;
-    font-weight: 100;
+  .ui--FormatBalance .balance-postfix {
+    opacity: 1;
+  }
+
+  .ui--Progress {
+    margin: 0.5rem 0.125rem 0.125rem 0.75rem;
+  }
+
+  > .ui--Labelled {
+    font-size: 1.75rem;
+    font-weight: var(--font-weight-light);
     position: relative;
-    line-height: 2.1rem;
+    line-height: 1;
     text-align: right;
 
     > * {
-      margin: 0.6rem 0;
+      margin: 0.25rem 0;
 
       &:first-child {
         margin-top: 0;
@@ -107,14 +138,16 @@ export default styled(CardSummary)`
     }
 
     > label {
-      line-height: 1rem;
       font-size: 0.95rem;
-      min-height: 1rem;
     }
 
-    .progress {
-      margin: 0.2rem 0 -0.5rem !important;
-      background: rgba(0,0,0,0.05);
+    .isSecondary {
+      font-size: 1rem;
+      font-weight: var(--font-weight-normal);
+
+      .timer {
+        min-width: 8rem;
+      }
     }
   }
 
@@ -124,7 +157,6 @@ export default styled(CardSummary)`
 
     > div {
       font-size: 1.4rem;
-      line-height: 1.4rem;
     }
   }
-`;
+`);

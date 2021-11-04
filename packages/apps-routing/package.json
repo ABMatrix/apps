@@ -1,15 +1,18 @@
 {
-  "name": "@polkadot/apps-routing",
-  "version": "0.36.0-beta.99",
-  "main": "index.js",
-  "repository": "https://github.com/polkadot-js/apps.git",
-  "author": "Jaco Greeff <jacogr@gmail.com>",
-  "maintainers": [
-    "Jaco Greeff <jacogr@gmail.com>"
-  ],
-  "contributors": [],
+  "bugs": "https://github.com/polkadot-js/apps/issues",
+  "homepage": "https://github.com/polkadot-js/apps/tree/master/packages/apps-routing#readme",
   "license": "Apache-2.0",
+  "name": "@polkadot/apps-routing",
+  "private": true,
+  "repository": {
+    "directory": "packages/apps-routing",
+    "type": "git",
+    "url": "https://github.com/polkadot-js/apps.git"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.98.2-37",
   "dependencies": {
-    "@babel/runtime": "^7.6.3"
+    "@babel/runtime": "^7.16.0"
   }
 }

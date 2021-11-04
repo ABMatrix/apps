@@ -1,40 +1,56 @@
-// Copyright 2017-2019 @polkadot/app-extrinsics authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/app-extrinsics authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps } from '@polkadot/react-components/types';
-import { RawParam } from '@polkadot/react-params/types';
-import { Call } from '@polkadot/types/interfaces';
-import { CallFunction, TypeDef } from '@polkadot/types/types';
+import type { SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api/types';
+import type { RawParam } from '@polkadot/react-params/types';
+import type { TypeDef } from '@polkadot/types/types';
 
-import React, { useEffect, useState } from 'react';
-import { GenericCall, getTypeDef } from '@polkadot/types';
-import { InputExtrinsic } from '@polkadot/react-components';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import Params from '@polkadot/react-params';
+import { getTypeDef } from '@polkadot/types/create';
 import { isUndefined } from '@polkadot/util';
 
+import InputExtrinsic from './InputExtrinsic';
 import paramComponents from './Params';
 
-interface Props extends BareProps {
-  defaultValue: CallFunction;
+interface Props {
+  className?: string;
+  defaultValue: SubmittableExtrinsicFunction<'promise'>;
   isDisabled?: boolean;
   isError?: boolean;
   isPrivate?: boolean;
   label?: React.ReactNode;
-  onChange: (method?: Call) => void;
+  onChange: (method?: SubmittableExtrinsic<'promise'>) => void;
   onEnter?: () => void;
+  onError?: (error?: Error | null) => void;
+  onEscape?: () => void;
   withLabel?: boolean;
 }
 
-function getParams ({ meta }: CallFunction): { name: string; type: TypeDef }[] {
-  return GenericCall.filterOrigin(meta).map((arg): { name: string; type: TypeDef } => ({
-    name: arg.name.toString(),
-    type: getTypeDef(arg.type.toString())
+interface CallState {
+  fn: SubmittableExtrinsicFunction<'promise'>;
+  params: {
+    name: string;
+    type: TypeDef
+  }[];
+}
+
+function getParams ({ meta }: SubmittableExtrinsicFunction<'promise'>): { name: string; type: TypeDef }[] {
+  return meta.args.map(({ name, type, typeName }): { name: string; type: TypeDef } => ({
+    name: name.toString(),
+    type: {
+      ...getTypeDef(type.toString()),
+      ...(typeName.isSome
+        ? { typeName: typeName.unwrap().toString() }
+        : {}
+      )
+    }
   }));
 }
 
-export default function ExtrinsicDisplay ({ defaultValue, isDisabled, isError, isPrivate, label, onChange, onEnter, withLabel }: Props): React.ReactElement<Props> {
-  const [extrinsic, setCall] = useState<{ fn: CallFunction; params: { name: string; type: TypeDef }[] }>({ fn: defaultValue, params: getParams(defaultValue) });
+function ExtrinsicDisplay ({ defaultValue, isDisabled, isError, isPrivate, label, onChange, onEnter, onError, onEscape, withLabel }: Props): React.ReactElement<Props> {
+  const [extrinsic, setCall] = useState<CallState>(() => ({ fn: defaultValue, params: getParams(defaultValue) }));
   const [values, setValues] = useState<RawParam[]>([]);
 
   useEffect((): void => {
@@ -53,16 +69,21 @@ export default function ExtrinsicDisplay ({ defaultValue, isDisabled, isError, i
 
     if (isValid) {
       try {
-        method = extrinsic.fn(...values.map(({ value }): any => value));
+        method = extrinsic.fn(...values.map(({ value }) => value));
       } catch (error) {
-        // swallow
+        onError && onError(error as Error);
       }
+    } else {
+      onError && onError(null);
     }
 
     onChange(method);
-  }, [extrinsic, values]);
+  }, [extrinsic, onChange, onError, values]);
 
-  const _onChangeMethod = (fn: CallFunction): void => setCall({ fn, params: getParams(fn) });
+  const _onChangeMethod = useCallback(
+    (fn: SubmittableExtrinsicFunction<'promise'>): void => setCall({ fn, params: getParams(fn) }),
+    []
+  );
 
   const { fn: { meta, method, section }, params } = extrinsic;
 
@@ -70,21 +91,24 @@ export default function ExtrinsicDisplay ({ defaultValue, isDisabled, isError, i
     <div className='extrinsics--Extrinsic'>
       <InputExtrinsic
         defaultValue={defaultValue}
+        help={meta?.docs.join(' ')}
         isDisabled={isDisabled}
         isError={isError}
         isPrivate={isPrivate}
         label={label}
         onChange={_onChangeMethod}
         withLabel={withLabel}
-        help={meta && meta.documentation && meta.documentation.join(' ')}
       />
       <Params
         key={`${section}.${method}:params` /* force re-render on change */}
         onChange={setValues}
         onEnter={onEnter}
+        onEscape={onEscape}
         overrides={paramComponents}
         params={params}
       />
     </div>
   );
 }
+
+export default React.memo(ExtrinsicDisplay);

@@ -1,21 +1,19 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Props as BareProps, RawParam } from '../types';
+import type { Props as BaseProps } from '../types';
 
 import React from 'react';
 
 import BaseBytes from './BaseBytes';
 import Static from './Static';
 
-interface Props extends BareProps {
-  defaultValue: RawParam;
-  withLabel?: boolean;
+interface Props extends BaseProps {
+  children?: React.ReactNode;
 }
 
-export default function Unknown (props: Props): React.ReactElement<Props> {
-  const { className, defaultValue, isDisabled, isError, label, name, onChange, onEnter, style, type } = props;
+function Unknown (props: Props): React.ReactElement<Props> {
+  const { className = '', defaultValue, isDisabled, isError, label, name, onChange, onEnter, onEscape, type } = props;
 
   if (isDisabled) {
     return <Static {...props} />;
@@ -33,9 +31,11 @@ export default function Unknown (props: Props): React.ReactElement<Props> {
       name={name}
       onChange={onChange}
       onEnter={onEnter}
-      style={style}
+      onEscape={onEscape}
       type={type}
       withLength={false}
     />
   );
 }
+
+export default React.memo(Unknown);

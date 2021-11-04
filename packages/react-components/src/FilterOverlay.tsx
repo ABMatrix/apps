@@ -1,16 +1,14 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
-
-import { BareProps } from './types';
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import styled from 'styled-components';
 
 import media from './media';
 
-interface Props extends BareProps {
+interface Props {
   children: React.ReactNode;
+  className?: string;
 }
 
 function FilterOverlay ({ children, className }: Props): React.ReactElement<Props> {
@@ -21,19 +19,15 @@ function FilterOverlay ({ children, className }: Props): React.ReactElement<Prop
   );
 }
 
-export default styled(FilterOverlay)`
+export default React.memo(styled(FilterOverlay)`
   display: none;
-
-  .ui--Labelled label {
-    display: none;
-  }
+  right: calc(50% - var(--width-half) + 1.5rem);
 
   ${media.DESKTOP`
     display: flex;
     justify-content: flex-end;
     position: absolute;
-    right: 5rem;
-    top: 0.4rem;
+    top: 0rem;
 
     > div {
       max-width: 35rem !important;
@@ -46,5 +40,18 @@ export default styled(FilterOverlay)`
     .ui.selection.dropdown {
       white-space: nowrap;
     }
-  `}
-`;
+  `};
+
+  .ui--Labelled label {
+    display: none;
+  }
+
+  && .ui--Input {
+    margin: 0.29rem 0;
+  }
+
+  /* hardcoded: var(--width-full) doesn't work in media */
+  @media (max-width: 1750px) {
+    right: 1.5rem;
+  }
+`);

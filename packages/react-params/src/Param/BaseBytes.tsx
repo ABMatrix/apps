@@ -1,114 +1,151 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Props as BaseProps, Size } from '../types';
+import type { TypeDef } from '@polkadot/types/types';
+import type { RawParam, RawParamOnChange, RawParamOnEnter, RawParamOnEscape, Size } from '../types';
 
-import React, { useEffect, useState } from 'react';
-import { Compact } from '@polkadot/types';
-import { Input } from '@polkadot/react-components';
-import { hexToU8a, isHex, u8aToHex } from '@polkadot/util';
+import React, { useCallback, useState } from 'react';
+import styled from 'styled-components';
+
+import { CopyButton, IdentityIcon, Input } from '@polkadot/react-components';
+import { compactAddLength, hexToU8a, isAscii, isHex, isU8a, stringToU8a, u8aToHex, u8aToString } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 
+import { useTranslation } from '../translate';
 import Bare from './Bare';
 
-interface Props extends BaseProps {
+interface Props {
   asHex?: boolean;
   children?: React.ReactNode;
+  className?: string;
+  defaultValue: RawParam;
+  isDisabled?: boolean;
+  isError?: boolean;
+  label?: React.ReactNode;
   length?: number;
+  name?: string;
+  onChange?: RawParamOnChange;
+  onEnter?: RawParamOnEnter;
+  onEscape?: RawParamOnEscape;
   size?: Size;
+  type: TypeDef & { withOptionActive?: boolean };
   validate?: (u8a: Uint8Array) => boolean;
+  withCopy?: boolean;
+  withLabel?: boolean;
   withLength?: boolean;
+}
+
+interface Validity {
+  isAddress: boolean;
+  isValid: boolean;
+  lastValue?: Uint8Array;
 }
 
 const defaultValidate = (): boolean =>
   true;
 
-function convertInput (value: string): [boolean, Uint8Array] {
-  // try hex conversion
-  try {
-    return [true, hexToU8a(value)];
-  } catch (error) {
-    // we continue...
+function convertInput (value: string): [boolean, boolean, Uint8Array] {
+  if (value === '0x') {
+    return [true, false, new Uint8Array([])];
+  } else if (value.startsWith('0x')) {
+    try {
+      return [true, false, hexToU8a(value)];
+    } catch (error) {
+      return [false, false, new Uint8Array([])];
+    }
   }
 
   // maybe it is an ss58?
   try {
-    return [true, decodeAddress(value)];
+    return [true, true, decodeAddress(value)];
   } catch (error) {
     // we continue
   }
 
-  return [value === '0x', new Uint8Array([])];
+  return isAscii(value)
+    ? [true, false, stringToU8a(value)]
+    : [value === '0x', false, new Uint8Array([])];
 }
 
-export default function BaseBytes ({ asHex, children, className, defaultValue: { value }, isDisabled, isError, label, length = -1, onChange, onEnter, size = 'full', style, validate = defaultValidate, withLabel, withLength }: Props): React.ReactElement<Props> {
-  const [isValid, setIsValid] = useState(false);
+function BaseBytes ({ asHex, children, className = '', defaultValue: { value }, isDisabled, isError, label, length = -1, onChange, onEnter, onEscape, size = 'full', validate = defaultValidate, withCopy, withLabel, withLength }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
+  const [defaultValue] = useState(
+    value
+      ? isDisabled && isU8a(value) && isAscii(value)
+        ? u8aToString(value)
+        : isHex(value)
+          ? value
+          : u8aToHex(value as Uint8Array, isDisabled ? 256 : -1)
+      : undefined
+  );
+  const [{ isAddress, isValid, lastValue }, setValidity] = useState<Validity>(() => ({ isAddress: false, isValid: false }));
 
-  useEffect((): void => {
-    const [isValid, converted] = convertInput(value);
+  const _onChange = useCallback(
+    (hex: string): void => {
+      let [isValid, isAddress, value] = convertInput(hex);
 
-    setIsValid(
-      isValid && validate(converted) && (
+      isValid = isValid && validate(value) && (
         length !== -1
-          ? converted.length === length
-          : true
-      )
-    );
-  }, [length, value]);
+          ? value.length === length
+          : (value.length !== 0 || hex === '0x')
+      );
 
-  const _onChange = (hex: string): void => {
-    let [isValid, value] = convertInput(hex);
+      if (withLength && isValid) {
+        value = compactAddLength(value);
+      }
 
-    isValid = isValid && validate(value) && (
-      length !== -1
-        ? value.length === length
-        : value.length !== 0
-    );
+      onChange && onChange({
+        isValid,
+        value: asHex
+          ? u8aToHex(value)
+          : value
+      });
 
-    if (withLength && isValid) {
-      value = Compact.addLengthPrefix(value);
-    }
-
-    onChange && onChange({
-      isValid,
-      value: asHex
-        ? u8aToHex(value)
-        : value
-    });
-
-    setIsValid(isValid);
-  };
-
-  const defaultValue = value
-    ? (
-      isHex(value)
-        ? value
-        : u8aToHex(value as Uint8Array, isDisabled ? 256 : -1)
-    )
-    : undefined;
+      setValidity({ isAddress, isValid, lastValue: value });
+    },
+    [asHex, length, onChange, validate, withLength]
+  );
 
   return (
-    <Bare
-      className={className}
-      style={style}
-    >
+    <Bare className={className}>
       <Input
         className={size}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue as string}
         isAction={!!children}
         isDisabled={isDisabled}
         isError={isError || !isValid}
         label={label}
         onChange={_onChange}
         onEnter={onEnter}
-        placeholder='0x...'
+        onEscape={onEscape}
+        placeholder={t<string>('0x prefixed hex, e.g. 0x1234 or ascii data')}
         type='text'
         withEllipsis
         withLabel={withLabel}
       >
         {children}
+        {withCopy && (
+          <CopyButton value={defaultValue} />
+        )}
+        {isAddress && (
+          <IdentityIcon
+            className='ui--InputAddressSimpleIcon'
+            size={32}
+            value={lastValue}
+          />
+        )}
       </Input>
     </Bare>
   );
 }
+
+export default React.memo(styled(BaseBytes)`
+  .ui--InputAddressSimpleIcon {
+    background: #eee;
+    border: 1px solid #888;
+    border-radius: 50%;
+    left: -16px;
+    position: absolute;
+    top: 8px;
+  }
+`);

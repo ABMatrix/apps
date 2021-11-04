@@ -1,37 +1,61 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { WithTranslation } from 'react-i18next';
-import { Props as BareProps, RawParam } from '../types';
+import type { Codec } from '@polkadot/types/types';
+import type { RawParam } from '../types';
 
 import React from 'react';
+import styled from 'styled-components';
+
 import { Static } from '@polkadot/react-components';
 
-import translate from '../translate';
+import { useTranslation } from '../translate';
+import { toHumanJson } from '../valueToText';
 import Bare from './Bare';
 
-interface Props extends BareProps, WithTranslation {
+interface Props {
   asHex?: boolean;
+  children?: React.ReactNode;
+  childrenPre?: React.ReactNode;
+  className?: string;
   defaultValue: RawParam;
+  label?: React.ReactNode;
   withLabel?: boolean;
 }
 
-function StaticParam ({ asHex, className, defaultValue, label, style, t }: Props): React.ReactElement<Props> {
-  const value = defaultValue && defaultValue.value && defaultValue.value[asHex ? 'toHex' : 'toString']();
+function StaticParam ({ asHex, children, childrenPre, className = '', defaultValue, label }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
+  const value = defaultValue && (defaultValue.value as string) && (
+    asHex
+      ? (defaultValue.value as Codec).toHex()
+      : toHumanJson(
+        (defaultValue.value as { toHuman?: () => unknown }).toHuman
+          ? (defaultValue.value as Codec).toHuman()
+          : defaultValue.value
+      )
+  );
 
   return (
-    <Bare
-      className={className}
-      style={style}
-    >
+    <Bare className={className}>
+      {childrenPre}
       <Static
         className='full'
         label={label}
-        value={value || t('<empty>')}
+        value={<pre>{value || t<string>('<empty>')}</pre>}
       />
+      {children}
     </Bare>
   );
 }
 
-export default translate(StaticParam);
+export default React.memo(styled(StaticParam)`
+  pre {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ui--Static {
+    margin-bottom: 0 !important;
+  }
+`);

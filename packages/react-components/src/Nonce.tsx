@@ -1,31 +1,30 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
-import { BareProps } from './types';
+import type { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
 
 import React from 'react';
+
 import { Nonce } from '@polkadot/react-query';
 
-import { classes } from './util';
-
-export interface Props extends BareProps {
+export interface Props {
+  className?: string;
   label?: React.ReactNode;
   params?: AccountId | AccountIndex | Address | string | Uint8Array | null;
 }
 
-export default function NonceDisplay ({ className, label, params, style }: Props): React.ReactElement<Props> | null {
+function NonceDisplay ({ className = '', label, params }: Props): React.ReactElement<Props> | null {
   if (!params) {
     return null;
   }
 
   return (
     <Nonce
-      className={classes('ui--Nonce', className)}
+      className={`ui--Nonce ${className}`}
       label={label}
       params={params.toString()}
-      style={style}
     />
   );
 }
+
+export default React.memo(NonceDisplay);

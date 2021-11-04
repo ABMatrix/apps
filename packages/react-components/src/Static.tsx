@@ -1,39 +1,47 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
-
-import { BareProps } from './types';
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 
+import CopyButton from './CopyButton';
 import Labelled from './Labelled';
 
-interface Props extends BareProps {
+interface Props {
   children?: React.ReactNode;
-  defaultValue?: any;
+  className?: string;
+  defaultValue?: unknown;
   help?: React.ReactNode;
   isDisabled?: boolean;
   isError?: boolean;
+  isFull?: boolean;
   isHidden?: boolean;
+  isSmall?: boolean;
   label?: React.ReactNode;
   value?: React.ReactNode;
+  withCopy?: boolean;
   withLabel?: boolean;
 }
 
-export default function Static ({ className, children, defaultValue, help, isHidden, label, style, value, withLabel }: Props): React.ReactElement<Props> {
+function Static ({ children, className = '', defaultValue, help, isFull, isHidden, isSmall, label, value, withCopy, withLabel }: Props): React.ReactElement<Props> {
   return (
     <Labelled
       className={className}
       help={help}
+      isFull={isFull}
       isHidden={isHidden}
+      isSmall={isSmall}
       label={label}
-      style={style}
       withLabel={withLabel}
     >
       <div className='ui--Static ui dropdown selection disabled'>
         {value || defaultValue}
         {children}
       </div>
+      {withCopy && (
+        <CopyButton value={value || defaultValue} />
+      )}
     </Labelled>
   );
 }
+
+export default React.memo(Static);

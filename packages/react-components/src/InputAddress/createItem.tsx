@@ -1,9 +1,8 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { KeyringSectionOption } from '@polkadot/ui-keyring/options/types';
-import { Option } from './types';
+import type { KeyringSectionOption } from '@polkadot/ui-keyring/options/types';
+import type { Option } from './types';
 
 import React from 'react';
 
@@ -16,7 +15,7 @@ export default function createItem (option: KeyringSectionOption, isUppercase = 
       <KeyPair
         address={option.key || ''}
         isUppercase={isUppercase}
-        name={option.name}
+        name={name}
       />
     )
   };

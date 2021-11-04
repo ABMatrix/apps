@@ -1,269 +1,67 @@
-/* eslint-disable @typescript-eslint/camelcase */
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { ApiProps } from '@polkadot/react-api/types';
-import { I18nProps } from '@polkadot/react-components/types';
-import { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
+import type { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
 
-import BN from 'bn.js';
 import React from 'react';
 import styled from 'styled-components';
-import { withCalls, withMulti } from '@polkadot/react-api';
+
+import { useAccountInfo } from '@polkadot/react-hooks';
 import BaseIdentityIcon from '@polkadot/react-identicon';
-import keyring from '@polkadot/ui-keyring';
 
-import AddressInfo, { BalanceActiveType, ValidatorPrefsType } from './AddressInfo';
-import { classes, getAddressName, getAddressTags, toShortAddress } from './util';
-import CopyButton from './CopyButton';
-import IdentityIcon, { getIdentityTheme } from './IdentityIcon';
-import Row, { RowProps, RowState as State, styles } from './Row';
-import translate from './translate';
+import IdentityIcon from './IdentityIcon';
+import Row, { RowProps } from './Row';
+import { toShortAddress } from './util';
 
-export interface Props extends I18nProps, RowProps {
-  bonded?: BN | BN[];
+export interface Props extends RowProps {
   isContract?: boolean;
   isValid?: boolean;
+  fullLength?: boolean;
   label?: string;
-  value: AccountId | AccountIndex | Address | string | null;
-  withAddressOrName?: boolean;
-  withBalance?: boolean | BalanceActiveType;
-  withIndex?: boolean;
-  withValidatorPrefs?: boolean | ValidatorPrefsType;
+  noDefaultNameOpacity?: boolean;
+  overlay?: React.ReactNode;
+  value: AccountId | AccountIndex | Address | string;
+  withSidebar?: boolean;
+  withTags?: boolean;
 }
 
-const DEFAULT_ADDR = '5'.padEnd(16, 'x');
-const ICON_SIZE = 48;
+const DEFAULT_ADDR = '5'.padEnd(48, 'x');
+const ICON_SIZE = 32;
 
-class AddressRow extends Row<ApiProps & Props, State> {
-  public state: State;
+function AddressRow ({ buttons, children, className, defaultName, fullLength = false, isContract = false, isDisabled, isEditableName, isInline, isValid: propsIsValid, overlay, value, withTags = false }: Props): React.ReactElement<Props> | null {
+  const { accountIndex, isNull, name, onSaveName, onSaveTags, setName, setTags, tags } = useAccountInfo(value ? value.toString() : null, isContract);
 
-  public constructor (props: ApiProps & Props) {
-    super(props);
+  const isValid = !isNull && (propsIsValid || value || accountIndex);
+  const Icon = value ? IdentityIcon : BaseIdentityIcon;
+  const address = value && isValid ? value : DEFAULT_ADDR;
 
-    this.state = this.createState();
-  }
-
-  public static getDerivedStateFromProps ({ accounts_idAndIndex = [], defaultName, type, value }: Props, prevState: State): State | null {
-    const [_accountId] = accounts_idAndIndex;
-    const accountId = _accountId || value;
-    const address = accountId
-      ? accountId.toString()
-      : DEFAULT_ADDR;
-    const name = getAddressName(address, type, false, defaultName || '<unknown>') || '';
-    const tags = getAddressTags(address, type);
-    const state: Partial<State> = { tags };
-    let hasChanged = false;
-
-    if (address !== prevState.address) {
-      state.address = address;
-      hasChanged = true;
-    }
-
-    if (!prevState.isEditingName && name !== prevState.name) {
-      state.name = name;
-      hasChanged = true;
-    }
-
-    return hasChanged
-      ? state as State
-      : null;
-  }
-
-  public render (): React.ReactNode {
-    const { accounts_idAndIndex = [], className, isContract, isInline, style } = this.props;
-    const [accountId, accountIndex] = accounts_idAndIndex;
-    const isValid = this.props.isValid || accountId || accountIndex;
-
-    return (
-      <div
-        className={classes('ui--Row', !isValid && 'invalid', isInline && 'inline', className)}
-        style={style}
-      >
-        <div className='ui--Row-base'>
-          {this.renderIcon()}
-          <div className='ui--Row-details'>
-            {this.renderLabel()}
-            {this.renderAddressAndName()}
-            {this.renderAccountIndex()}
-            {!isContract && this.renderBalances()}
-            {this.renderTags()}
-          </div>
-          {this.renderButtons()}
-        </div>
-        {this.renderChildren()}
-      </div>
-    );
-  }
-
-  private createState (): State {
-    const { accounts_idAndIndex = [], defaultName, type, value } = this.props;
-    const [_accountId] = accounts_idAndIndex;
-    const accountId = _accountId || value;
-    const address = accountId
-      ? accountId.toString()
-      : DEFAULT_ADDR;
-    const name = getAddressName(address, type, false, defaultName || '<unknown>') || '';
-    const tags = getAddressTags(address, type);
-
-    return {
-      ...this.state,
-      address,
-      name,
-      tags
-    };
-  }
-
-  protected renderAddressAndName (): React.ReactNode {
-    const { withAddressOrName = false } = this.props;
-
-    if (withAddressOrName) {
-      return this.renderName(true);
-    } else {
-      return (
-        <>
-          {this.renderName()}
-          {this.renderAddress()}
-        </>
-      );
-    }
-  }
-
-  private renderAddress (): React.ReactNode {
-    const { address } = this.state;
-
-    return (
-      <div className='ui--Row-accountId'>
-        <CopyButton
-          isAddress
-          value={address}
-        >
-          <span>{toShortAddress(address)}</span>
-        </CopyButton>
-      </div>
-    );
-  }
-
-  private renderAccountIndex (): React.ReactNode {
-    const { accounts_idAndIndex = [], withIndex } = this.props;
-    const [, accountIndex] = accounts_idAndIndex;
-
-    if (!accountIndex || !withIndex) {
-      return null;
-    }
-
-    return (
-      <div className='ui--Row-accountIndex'>
-        {accountIndex.toString()}
-      </div>
-    );
-  }
-
-  private renderBalances (): React.ReactNode {
-    const { accounts_idAndIndex = [], withBalance, withValidatorPrefs } = this.props;
-    const [accountId] = accounts_idAndIndex;
-
-    if (!(withBalance || withValidatorPrefs) || !accountId) {
-      return null;
-    }
-
-    return (
-      <div className='ui--Row-balances'>
-        <AddressInfo
-          address={accountId}
-          withBalance={withBalance}
-          withValidatorPrefs={withValidatorPrefs}
-        />
-      </div>
-    );
-  }
-
-  private renderIcon (): React.ReactNode {
-    const { accounts_idAndIndex = [], iconInfo, systemName, withIcon = true } = this.props;
-    const { address } = this.state;
-    const [accountId] = accounts_idAndIndex;
-
-    if (!withIcon) {
-      return null;
-    }
-
-    // Since we do queries to storage in the wrapped example, we don't want
-    // to follow that route if we don't have a valid address.
-    const Component = accountId
-      ? IdentityIcon
-      : BaseIdentityIcon;
-    const theme = getIdentityTheme(systemName);
-
-    return (
-      <div className='ui--Row-icon'>
-        <Component
+  return (
+    <Row
+      address={fullLength ? address : toShortAddress(address)}
+      buttons={buttons}
+      className={className}
+      defaultName={defaultName}
+      icon={
+        <Icon
           size={ICON_SIZE}
-          theme={theme}
-          value={address}
+          value={value ? value.toString() : null}
         />
-        {iconInfo && (
-          <div className='ui--Row-icon-info'>
-            {iconInfo}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  private renderLabel (): React.ReactNode {
-    const { label } = this.props;
-
-    if (!label) {
-      return null;
-    }
-
-    return (
-      <label className='account-label'>{label}</label>
-    );
-  }
-
-  protected saveName = (): void => {
-    const { address, name } = this.state;
-    const trimmedName = name.trim();
-    const meta = {
-      name: trimmedName,
-      whenEdited: Date.now()
-    };
-
-    // Save only if the name was changed or if it's no empty.
-    if (trimmedName && address) {
-      try {
-        const currentKeyring = keyring.getPair(address);
-
-        currentKeyring && keyring.saveAccountMeta(currentKeyring, meta);
-      } catch (error) {
-        keyring.saveAddress(address, meta);
       }
-
-      this.setState({ isEditingName: false });
-    }
-  }
-
-  protected saveTags = (): void => {
-    const { address, tags } = this.state;
-    const meta = {
-      tags,
-      whenEdited: Date.now()
-    };
-
-    if (address) {
-      try {
-        const currentKeyring = keyring.getPair(address);
-
-        currentKeyring && keyring.saveAccountMeta(currentKeyring, meta);
-      } catch (error) {
-        keyring.saveAddress(address, meta);
-      }
-
-      this.setState({ isEditingTags: false });
-    }
-  }
+      isDisabled={isDisabled}
+      isEditableName={isEditableName}
+      isEditableTags
+      isInline={isInline}
+      name={name}
+      onChangeName={setName}
+      onChangeTags={setTags}
+      onSaveName={onSaveName}
+      onSaveTags={onSaveTags}
+      tags={withTags && tags}
+    >
+      {children}
+      {overlay}
+    </Row>
+  );
 }
 
 export {
@@ -271,12 +69,44 @@ export {
   AddressRow
 };
 
-export default withMulti(
-  styled(AddressRow as React.ComponentClass<Props & ApiProps, State>)`
-    ${styles}
-  `,
-  translate,
-  withCalls<Props>(
-    ['derive.accounts.idAndIndex', { paramName: 'value' }]
-  )
-);
+export default React.memo(styled(AddressRow)`
+  button.u.ui--Icon.editButton {
+    padding: 0 .3em .3em .3em;
+    color: #2e86ab;
+    background: none;
+    /*trick to let the button in the flow but keep the content centered regardless*/
+    margin-left: -2em;
+    position: relative;
+    right: -2.3em;
+    z-index: 1;
+  }
+
+  .editSpan {
+    white-space: nowrap;
+
+    &:before {
+      content: '';
+    }
+  }
+
+  .ui--AddressRow-balances {
+    display: flex;
+    .column {
+      display: block;
+
+      label,
+      .result {
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+
+    > span {
+      text-align: left;
+    }
+  }
+
+  .ui--AddressRow-placeholder {
+    opacity: 0.5;
+  }
+`);

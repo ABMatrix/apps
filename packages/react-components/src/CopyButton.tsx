@@ -1,38 +1,45 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { BareProps, I18nProps } from './types';
+import type { IconName } from '@fortawesome/fontawesome-svg-core';
 
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import styled from 'styled-components';
 
 import StatusContext from './Status/Context';
 import Button from './Button';
-import translate from './translate';
-import styled from 'styled-components';
+import { useTranslation } from './translate';
 
-interface Props extends BareProps, I18nProps {
+interface Props {
   children?: React.ReactNode;
-  icon?: string;
-  isAddress?: boolean;
-  value?: any;
+  className?: string;
+  icon?: IconName;
+  label?: React.ReactNode;
+  type?: string;
+  isMnemonic?: boolean;
+  value: string;
 }
 
-function CopyButton ({ children, className, icon = 'copy', isAddress = false, t, value }: Props): React.ReactElement<Props> {
+const NOOP = () => undefined;
+
+function CopyButton ({ children, className = '', icon = 'copy', label, type, value }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
   const { queueAction } = useContext(StatusContext);
 
-  const _onCopy = (): void => {
-    isAddress && queueAction && queueAction({
-      account: value,
-      action: t('clipboard'),
-      status: 'queued',
-      message: t('address copied')
-    });
-  };
+  const _onCopy = useCallback(
+    (): void => {
+      queueAction && queueAction({
+        action: t<string>('clipboard'),
+        message: t<string>('{{type}} copied', { replace: { type: type || t<string>('value') } }),
+        status: 'queued'
+      });
+    },
+    [type, queueAction, t]
+  );
 
   return (
-    <div className={className}>
+    <div className={`ui--CopyButton ${className}`}>
       <CopyToClipboard
         onCopy={_onCopy}
         text={value}
@@ -41,10 +48,11 @@ function CopyButton ({ children, className, icon = 'copy', isAddress = false, t,
           {children}
           <span className='copySpan'>
             <Button
-              className='iconButton'
+              className='icon-button show-on-hover'
               icon={icon}
-              size='mini'
-              isPrimary
+              isDisabled={!value}
+              label={label}
+              onClick={NOOP}
             />
           </span>
         </div>
@@ -53,16 +61,8 @@ function CopyButton ({ children, className, icon = 'copy', isAddress = false, t,
   );
 }
 
-export default translate(
-  styled(CopyButton)`
-    cursor: copy;
-
-    button.ui.mini.icon.primary.button.iconButton {
-      cursor: copy;
-    }
-
-    .copySpan {
-      white-space: nowrap;
-    }
-  `
-);
+export default React.memo(styled(CopyButton)`
+  .copySpan {
+    white-space: nowrap;
+  }
+`);

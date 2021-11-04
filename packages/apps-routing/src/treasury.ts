@@ -1,24 +1,23 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Treasury from '@polkadot/app-treasury';
+import Component, { useCounter } from '@polkadot/app-treasury';
 
-export default ([
-  {
-    Component: Treasury,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
-      needsAccounts: true,
       needsApi: [
         'tx.treasury.proposeSpend'
       ]
     },
-    i18n: {
-      defaultValue: 'Treasury'
-    },
+    group: 'governance',
     icon: 'gem',
-    name: 'treasury'
-  }
-] as Routes);
+    name: 'treasury',
+    text: t('nav.treasury', 'Treasury', { ns: 'apps-routing' }),
+    useCounter
+  };
+}

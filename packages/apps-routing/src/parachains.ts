@@ -1,23 +1,23 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Parachains from '@polkadot/app-parachains';
+import Component from '@polkadot/app-parachains';
 
-export default ([
-  {
-    Component: Parachains,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsApi: [
-        'query.parachains.code'
+        // children - parachainInfo.arachainId / parachainUpgrade.didSetValidationCode
+        ['query.paras.parachains']
       ]
     },
-    i18n: {
-      defaultValue: 'Parachains'
-    },
-    icon: 'chain',
-    name: 'parachains'
-  }
-] as Routes);
+    group: 'network',
+    icon: 'link',
+    name: 'parachains',
+    text: t('nav.parachains', 'Parachains', { ns: 'apps-routing' })
+  };
+}

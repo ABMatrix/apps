@@ -1,17 +1,18 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { KeyringItemType } from '@polkadot/ui-keyring/types';
+import type { KeyringItemType } from '@polkadot/ui-keyring/types';
 
-import getAddressMeta from './getAddressMeta';
-import toShortAddress from './toShortAddress';
+import { getAddressMeta } from './getAddressMeta';
+import { toShortAddress } from './toShortAddress';
 
-export default function getAddressName (address: string, type: KeyringItemType | null = null, withShort?: boolean, defaultName?: string): string | undefined {
+// isName, isDefault, name
+export function getAddressName (address: string, type: KeyringItemType | null = null, defaultName?: string): [boolean, boolean, string] {
   const meta = getAddressMeta(address, type);
-  const name = meta.name || defaultName;
 
-  return !name && withShort
-    ? toShortAddress(address)
-    : name;
+  return meta.name
+    ? [false, false, meta.name.toUpperCase()]
+    : defaultName
+      ? [false, true, defaultName.toUpperCase()]
+      : [true, false, toShortAddress(address)];
 }

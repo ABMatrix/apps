@@ -1,47 +1,50 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { CallFunction } from '@polkadot/types/types';
-import { BareProps } from '../types';
-import { DropdownOptions } from '../util/types';
+import type { SubmittableExtrinsicFunction } from '@polkadot/api/types';
+import type { DropdownOptions } from '../util/types';
 
-import React from 'react';
-import ApiPromise from '@polkadot/api/promise';
+import React, { useCallback } from 'react';
+
+import { ApiPromise } from '@polkadot/api';
 
 import Dropdown from '../Dropdown';
-import { classes } from '../util';
 
-interface Props extends BareProps {
+interface Props {
   api: ApiPromise;
+  className?: string;
+  defaultValue?: string;
+  isDisabled?: boolean;
   isError?: boolean;
-  onChange: (value: CallFunction) => void;
+  onChange?: (value: SubmittableExtrinsicFunction<'promise'>) => void;
   options: DropdownOptions;
-  value: CallFunction;
+  value: SubmittableExtrinsicFunction<'promise'>;
 }
 
-function transform ({ api, value }: Props): (method: string) => CallFunction {
-  return (method: string): CallFunction => {
-    return api.tx[value.section][method];
-  };
-}
+function SelectMethod ({ api, className = '', defaultValue, isDisabled, isError, onChange, options, value }: Props): React.ReactElement<Props> | null {
+  const transform = useCallback(
+    (method: string): SubmittableExtrinsicFunction<'promise'> =>
+      api.tx[value.section][method],
+    [api, value]
+  );
 
-export default function SelectMethod (props: Props): React.ReactElement<Props> | null {
-  const { className, isError, onChange, options, style, value } = props;
   if (!options.length) {
     return null;
   }
 
   return (
     <Dropdown
-      className={classes('ui--DropdownLinked-Items', className)}
+      className={`ui--DropdownLinked-Items ${className}`}
+      defaultValue={defaultValue}
+      isDisabled={isDisabled}
       isError={isError}
       onChange={onChange}
       options={options}
-      style={style}
-      transform={transform(props)}
+      transform={transform}
       value={value.method}
       withLabel={false}
     />
   );
 }
+
+export default React.memo(SelectMethod);

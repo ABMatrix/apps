@@ -1,58 +1,74 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Props } from '../types';
+import type BN from 'bn.js';
+import type { Props } from '../types';
 
-import BN from 'bn.js';
-import React from 'react';
-import { ClassOf } from '@polkadot/types';
-import { Input } from '@polkadot/react-components';
-import { bnToBn, formatNumber } from '@polkadot/util';
+import React, { useCallback, useMemo } from 'react';
+
+import { Input, InputNumber } from '@polkadot/react-components';
+import { bnToBn, formatNumber, isUndefined } from '@polkadot/util';
 
 import Bare from './Bare';
 
-function onChange ({ onChange }: Props): (_: string) => void {
-  return function (value: string): void {
-    onChange && onChange({
-      isValid: true,
-      value: new BN(value || 0)
-    });
-  };
-}
-
-export default function Amount (props: Props): React.ReactElement<Props> {
-  const { className, defaultValue: { value }, isDisabled, isError, label, onEnter, style, withLabel } = props;
-  const defaultValue = isDisabled
-    ? (
-      value instanceof ClassOf('AccountIndex')
+function Amount ({ className = '', defaultValue: { value }, isDisabled, isError, label, onChange, onEnter, registry, type, withLabel }: Props): React.ReactElement<Props> {
+  const defaultValue = useMemo(
+    () => isDisabled
+      ? value instanceof registry.createClass('AccountIndex')
         ? value.toString()
-        : formatNumber(value)
-    )
-    : bnToBn((value as number) || 0).toString();
+        : formatNumber(value as number)
+      : bnToBn((value as number) || 0).toString(),
+    [isDisabled, registry, value]
+  );
+
+  const bitLength = useMemo(
+    (): number => {
+      try {
+        return registry.createType(type.type as 'u32').bitLength();
+      } catch (error) {
+        return 32;
+      }
+    },
+    [registry, type]
+  );
+
+  const _onChange = useCallback(
+    (value?: BN) => onChange && onChange({
+      isValid: !isUndefined(value),
+      value
+    }),
+    [onChange]
+  );
 
   return (
-    <Bare
-      className={className}
-      style={style}
-    >
-      <Input
-        className='full'
-        defaultValue={defaultValue}
-        isDisabled={isDisabled}
-        isError={isError}
-        label={label}
-        min={0}
-        onChange={onChange(props)}
-        onEnter={onEnter}
-        type={
-          isDisabled
-            ? 'text'
-            : 'number'
-        }
-        withEllipsis
-        withLabel={withLabel}
-      />
+    <Bare className={className}>
+      {isDisabled
+        ? (
+          <Input
+            className='full'
+            defaultValue={defaultValue}
+            isDisabled
+            label={label}
+            withEllipsis
+            withLabel={withLabel}
+          />
+        )
+        : (
+          <InputNumber
+            bitLength={bitLength}
+            className='full'
+            defaultValue={defaultValue}
+            isError={isError}
+            isZeroable
+            label={label}
+            onChange={_onChange}
+            onEnter={onEnter}
+            withLabel={withLabel}
+          />
+        )
+      }
     </Bare>
   );
 }
+
+export default React.memo(Amount);

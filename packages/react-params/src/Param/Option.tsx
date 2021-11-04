@@ -1,49 +1,56 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { TypeDef } from '@polkadot/types/types';
-import { I18nProps } from '@polkadot/react-components/types';
-import { Props as CProps } from '../types';
+import type { TypeDef } from '@polkadot/types/types';
+import type { Props } from '../types';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { Toggle } from '@polkadot/react-components';
 
-import translate from '../translate';
+import { Toggle } from '@polkadot/react-components';
+import { Option } from '@polkadot/types';
+
+import { useTranslation } from '../translate';
 import Param from './index';
 
-interface Props extends CProps, I18nProps {}
+function OptionDisplay ({ className = '', defaultValue: _defaultValue, isDisabled, name, onChange, onEnter, onEscape, registry, type: { sub, withOptionActive } }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
+  const [isActive, setIsActive] = useState(withOptionActive || false);
 
-function Option ({ className, defaultValue, isDisabled, name, onChange, onEnter, t, type: { sub } }: Props): React.ReactElement<Props> {
-  const [isActive, setIsActive] = useState(false);
+  const defaultValue = useMemo(
+    () => isDisabled
+      ? _defaultValue && _defaultValue.value instanceof Option && _defaultValue.value.isSome
+        ? { isValid: _defaultValue.isValid, value: _defaultValue.value.unwrap() }
+        : { isValid: _defaultValue.isValid, value: undefined }
+      : _defaultValue,
+    [_defaultValue, isDisabled]
+  );
 
   useEffect((): void => {
     !isActive && onChange && onChange({
       isValid: true,
       value: null
     });
-  }, [isActive]);
+  }, [isActive, onChange]);
 
   return (
     <div className={className}>
       <Param
         defaultValue={defaultValue}
         isDisabled={isDisabled || !isActive}
-        isOptional={!isActive}
+        isInOption
+        isOptional={!isActive && !isDisabled}
         name={name}
         onChange={onChange}
         onEnter={onEnter}
+        onEscape={onEscape}
+        registry={registry}
         type={sub as TypeDef}
       />
       {!isDisabled && (
         <Toggle
-          className='ui--Param-Option-toggle'
-          label={
-            isActive
-              ? t('include option')
-              : t('exclude option')
-          }
+          isOverlay
+          label={t<string>('include option')}
           onChange={setIsActive}
           value={isActive}
         />
@@ -52,14 +59,6 @@ function Option ({ className, defaultValue, isDisabled, name, onChange, onEnter,
   );
 }
 
-export default translate(
-  styled(Option)`
-    position: relative;
-
-    .ui--Param-Option-toggle {
-      position: absolute;
-      right: 3.5rem;
-      top: 0.5rem;
-    }
-  `
-);
+export default React.memo(styled(OptionDisplay)`
+  position: relative;
+`);

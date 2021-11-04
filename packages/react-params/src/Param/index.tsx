@@ -1,34 +1,45 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { I18nProps } from '@polkadot/react-components/types';
-import { BaseProps, Props as CProps, ComponentMap } from '../types';
+import type { Props } from '../types';
 
-import React, { useRef } from 'react';
-import { classes } from '@polkadot/react-components/util';
+import React, { useMemo } from 'react';
+
+import { encodeTypeDef } from '@polkadot/types/create';
 import { isUndefined } from '@polkadot/util';
 
-import translate from '../translate';
 import findComponent from './findComponent';
 import Static from './Static';
 
-interface Props extends I18nProps, BaseProps {
-  isDisabled?: boolean;
-  isOptional?: boolean;
-  overrides?: ComponentMap;
+function formatJSON (input: string): string {
+  return input
+    .replace(/"/g, '')
+    .replace(/\\/g, '')
+    .replace(/:Null/g, '')
+    .replace(/:/g, ': ')
+    // .replace(/{/g, '{ ')
+    // .replace(/}/g, ' }')
+    .replace(/,/g, ', ');
 }
 
-function Param ({ className, defaultValue, isDisabled, isOptional, name, onChange, onEnter, overrides, style, type }: Props): React.ReactElement<Props> | null {
-  const compRef = useRef<React.ComponentType<CProps> | null>(findComponent(type, overrides));
+function Param ({ className = '', defaultValue, isDisabled, isInOption, isOptional, name, onChange, onEnter, onEscape, overrides, registry, type }: Props): React.ReactElement<Props> | null {
+  const Component = useMemo(
+    () => findComponent(registry, type, overrides),
+    [registry, type, overrides]
+  );
 
-  if (!compRef.current) {
+  const label = useMemo(
+    (): string => {
+      const fmtType = formatJSON(`${isDisabled && isInOption ? 'Option<' : ''}${encodeTypeDef(registry, type)}${isDisabled && isInOption ? '>' : ''}`);
+
+      return `${isUndefined(name) ? '' : `${name}: `}${fmtType}${type.typeName && !fmtType.includes(type.typeName) ? ` (${type.typeName})` : ''}`;
+    },
+    [isDisabled, isInOption, name, registry, type]
+  );
+
+  if (!Component) {
     return null;
   }
-
-  const label = isUndefined(name)
-    ? type.type
-    : `${name}: ${type.type}`;
 
   return isOptional
     ? (
@@ -39,19 +50,22 @@ function Param ({ className, defaultValue, isDisabled, isOptional, name, onChang
       />
     )
     : (
-      <compRef.current
-        className={classes('ui--Param', className)}
+      <Component
+        className={`ui--Param ${className}`}
         defaultValue={defaultValue}
-        key={`${name}:${type}`}
         isDisabled={isDisabled}
+        isInOption={isInOption}
+        key={`${name || 'unknown'}:${label}`}
         label={label}
         name={name}
         onChange={onChange}
         onEnter={onEnter}
-        style={style}
+        onEscape={onEscape}
+        overrides={overrides}
+        registry={registry}
         type={type}
       />
     );
 }
 
-export default translate(Param);
+export default React.memo(Param);

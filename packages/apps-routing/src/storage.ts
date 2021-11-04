@@ -1,21 +1,20 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Storage from '@polkadot/app-storage';
+import Component from '@polkadot/app-storage';
 
-export default ([
-  {
-    Component: Storage,
+export default function create (t: TFunction): Route {
+  return {
+    Component,
     display: {
       needsApi: []
     },
-    i18n: {
-      defaultValue: 'Chain state'
-    },
+    group: 'developer',
     icon: 'database',
-    name: 'chainstate'
-  }
-] as Routes);
+    name: 'chainstate',
+    text: t('nav.storage', 'Chain state', { ns: 'apps-routing' })
+  };
+}

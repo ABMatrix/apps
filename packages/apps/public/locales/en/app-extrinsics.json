@@ -1,9 +1,12 @@
 {
-  "Extrinsic submission": "Extrinsic submission",
-  "using the selected account": "using the selected account",
-  "with an account balance": "with an account balance",
-  "with a transaction nonce": "with a transaction nonce",
-  "submit the following extrinsic": "submit the following extrinsic",
+  "0x...": "0x...",
+  "Decode": "Decode",
+  "Submission": "Submission",
+  "Submit Transaction": "Submit Transaction",
   "Submit Unsigned": "Submit Unsigned",
-  "Submit Transaction": "Submit Transaction"
+  "decoded call": "decoded call",
+  "free balance": "free balance",
+  "hex-encoded call": "hex-encoded call",
+  "submit the following extrinsic": "submit the following extrinsic",
+  "using the selected account": "using the selected account"
 }

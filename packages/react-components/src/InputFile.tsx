@@ -1,33 +1,33 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { WithTranslation } from 'react-i18next';
-import { BareProps } from './types';
-
-import React, { useState, createRef } from 'react';
+import React, { createRef, useCallback, useState } from 'react';
 import Dropzone, { DropzoneRef } from 'react-dropzone';
 import styled from 'styled-components';
-import { formatNumber, isHex, u8aToString, hexToU8a } from '@polkadot/util';
 
-import { classes } from './util';
+import { formatNumber, hexToU8a, isHex, u8aToString } from '@polkadot/util';
+
 import Labelled from './Labelled';
-import translate from './translate';
+import { useTranslation } from './translate';
 
-interface Props extends BareProps, WithTranslation {
-  // Reference Example Usage: https://github.com/react-dropzone/react-dropzone/tree/master/examples/Accept
-  // i.e. MIME types: 'application/json, text/plain', or '.json, .txt'
-  accept?: string;
+export interface InputFilePropsBase {
+  className?: string;
   clearContent?: boolean;
-  convertHex?: boolean;
   help?: React.ReactNode;
   isDisabled?: boolean;
   isError?: boolean;
+  isFull?: boolean;
   label: React.ReactNode;
-  onChange?: (contents: Uint8Array, name: string) => void;
-  placeholder?: React.ReactNode | null;
+  placeholder?: React.ReactNode | null | false;
   withEllipsis?: boolean;
   withLabel?: boolean;
+}
+
+export interface InputFileProps extends InputFilePropsBase {
+  // Reference Example Usage: https://github.com/react-dropzone/react-dropzone/tree/master/examples/Accept
+  // i.e. MIME types: 'application/json, text/plain', or '.json, .txt'
+  accept?: string;
+  onChange?: (contents: Uint8Array, name: string) => void;
 }
 
 interface FileState {
@@ -37,14 +37,19 @@ interface FileState {
 
 const BYTE_STR_0 = '0'.charCodeAt(0);
 const BYTE_STR_X = 'x'.charCodeAt(0);
-const NOOP = (): void => {};
+const STR_NL = '\n';
+const NOOP = (): void => undefined;
 
-function convertResult (result: ArrayBuffer, convertHex?: boolean): Uint8Array {
+function convertResult (result: ArrayBuffer): Uint8Array {
   const data = new Uint8Array(result);
 
-  // this converts the input (if detected as hex), vai the hex conversion route
-  if (convertHex && data[0] === BYTE_STR_0 && data[1] === BYTE_STR_X) {
-    const hex = u8aToString(data);
+  // this converts the input (if detected as hex), via the hex conversion route
+  if (data[0] === BYTE_STR_0 && data[1] === BYTE_STR_X) {
+    let hex = u8aToString(data);
+
+    while (hex[hex.length - 1] === STR_NL) {
+      hex = hex.substr(0, hex.length - 1);
+    }
 
     if (isHex(hex)) {
       return hexToU8a(hex);
@@ -54,50 +59,54 @@ function convertResult (result: ArrayBuffer, convertHex?: boolean): Uint8Array {
   return data;
 }
 
-function InputFile ({ accept, className, clearContent, convertHex, help, isDisabled, isError = false, label, onChange, placeholder, t, withEllipsis, withLabel }: Props): React.ReactElement<Props> {
+function InputFile ({ accept, className = '', clearContent, help, isDisabled, isError = false, isFull, label, onChange, placeholder, withEllipsis, withLabel }: InputFileProps): React.ReactElement<InputFileProps> {
+  const { t } = useTranslation();
   const dropRef = createRef<DropzoneRef>();
   const [file, setFile] = useState<FileState | undefined>();
 
-  const _onDrop = (files: File[]): void => {
-    files.forEach((file): void => {
-      const reader = new FileReader();
+  const _onDrop = useCallback(
+    (files: File[]): void => {
+      files.forEach((file): void => {
+        const reader = new FileReader();
 
-      reader.onabort = NOOP;
-      reader.onerror = NOOP;
+        reader.onabort = NOOP;
+        reader.onerror = NOOP;
 
-      reader.onload = ({ target }: ProgressEvent<FileReader>): void => {
-        if (target && target.result) {
-          const name = file.name;
-          const data = convertResult(target.result as ArrayBuffer, convertHex);
+        reader.onload = ({ target }: ProgressEvent<FileReader>): void => {
+          if (target && target.result) {
+            const name = file.name;
+            const data = convertResult(target.result as ArrayBuffer);
 
-          onChange && onChange(data, name);
-          dropRef && setFile({
-            name,
-            size: data.length
-          });
-        }
-      };
+            onChange && onChange(data, name);
+            dropRef && setFile({
+              name,
+              size: data.length
+            });
+          }
+        };
 
-      reader.readAsArrayBuffer(file);
-    });
-  };
+        reader.readAsArrayBuffer(file);
+      });
+    },
+    [dropRef, onChange]
+  );
 
   const dropZone = (
     <Dropzone
       accept={accept}
       disabled={isDisabled}
       multiple={false}
-      ref={dropRef}
       onDrop={_onDrop}
+      ref={dropRef}
     >
-      {({ getRootProps, getInputProps }): JSX.Element => (
-        <div {...getRootProps({ className: classes('ui--InputFile', isError ? 'error' : '', className) })} >
+      {({ getInputProps, getRootProps }): JSX.Element => (
+        <div {...getRootProps({ className: `ui--InputFile${isError ? ' error' : ''} ${className}` })}>
           <input {...getInputProps()} />
-          <em className='label' >
+          <em className='label'>
             {
               !file || clearContent
-                ? placeholder || t('click to select or drag and drop the file here')
-                : placeholder || t('{{name}} ({{size}} bytes)', {
+                ? placeholder || t<string>('click to select or drag and drop the file here')
+                : placeholder || t<string>('{{name}} ({{size}} bytes)', {
                   replace: {
                     name: file.name,
                     size: formatNumber(file.size)
@@ -114,6 +123,7 @@ function InputFile ({ accept, className, clearContent, convertHex, help, isDisab
     ? (
       <Labelled
         help={help}
+        isFull={isFull}
         label={label}
         withEllipsis={withEllipsis}
         withLabel={withLabel}
@@ -124,28 +134,21 @@ function InputFile ({ accept, className, clearContent, convertHex, help, isDisab
     : dropZone;
 }
 
-export default translate(
-  styled(InputFile)`
-    background: #fff;
-    border: 1px solid rgba(34, 36, 38, 0.15);
-    border-radius: 0.28571429rem;
-    font-size: 1rem;
-    margin: 0.25rem 0;
-    padding: 1rem;
-    width: 100% !important;
+export default React.memo(styled(InputFile)`
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 0.28571429rem;
+  font-size: 1rem;
+  margin: 0.25rem 0;
+  padding: 0.67857143em 1em;
+  width: 100% !important;
 
-    &.error {
-      background: #fff6f6;
-      border-color: #e0b4b4;
-    }
+  &.error {
+    background: var(--bg-input-error);
+    border-color: #e0b4b4;
+  }
 
-    &:hover {
-      background: #fefefe;
-      cursor: pointer;
-    }
-
-    .label {
-      color: rgba(0, 0, 0, .6);
-    }
-  `
-);
+  &:hover {
+    cursor: pointer;
+  }
+`);

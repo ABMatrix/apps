@@ -1,31 +1,32 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-params authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { TypeDef, TypeDefInfo } from '@polkadot/types/types';
-import { RawParamValue } from './types';
+import type { Registry, TypeDef } from '@polkadot/types/types';
 
-import BN from 'bn.js';
-import { Bytes, U8a, createType, getTypeDef } from '@polkadot/types';
+import { getTypeDef } from '@polkadot/types';
+import { TypeDefInfo } from '@polkadot/types/types';
+import { BN_ZERO, isBn } from '@polkadot/util';
 
-export default function getInitValue (def: TypeDef): RawParamValue | RawParamValue[] {
+const warnList: string[] = [];
+
+export default function getInitValue (registry: Registry, def: TypeDef): unknown {
   if (def.info === TypeDefInfo.Vec) {
-    return [getInitValue(def.sub as TypeDef)];
+    return [getInitValue(registry, def.sub as TypeDef)];
   } else if (def.info === TypeDefInfo.Tuple) {
     return Array.isArray(def.sub)
-      ? def.sub.map((def): any => getInitValue(def))
+      ? def.sub.map((def) => getInitValue(registry, def))
       : [];
   } else if (def.info === TypeDefInfo.Struct) {
     return Array.isArray(def.sub)
-      ? def.sub.reduce((result, def): Record<string, RawParamValue | RawParamValue[]> => {
-        result[def.name as string] = getInitValue(def);
+      ? def.sub.reduce((result: Record<string, unknown>, def): Record<string, unknown> => {
+        result[def.name as string] = getInitValue(registry, def);
 
         return result;
-      }, {} as unknown as Record<string, RawParamValue | RawParamValue[]>)
+      }, {})
       : {};
   } else if (def.info === TypeDefInfo.Enum) {
     return Array.isArray(def.sub)
-      ? { [def.sub[0].name as string]: getInitValue(def.sub[0]) }
+      ? { [def.sub[0].name as string]: getInitValue(registry, def.sub[0]) }
       : {};
   }
 
@@ -57,17 +58,20 @@ export default function getInitValue (def: TypeDef): RawParamValue | RawParamVal
     case 'u64':
     case 'u128':
     case 'VoteIndex':
-      return new BN(0);
+      return BN_ZERO;
 
     case 'bool':
       return false;
+
+    case 'Bytes':
+      return undefined;
 
     case 'String':
     case 'Text':
       return '';
 
     case 'Moment':
-      return new BN(0);
+      return BN_ZERO;
 
     case 'Vote':
       return -1;
@@ -75,20 +79,19 @@ export default function getInitValue (def: TypeDef): RawParamValue | RawParamVal
     case 'VoteThreshold':
       return 0;
 
-    case 'Bytes':
-      return new Bytes();
-
+    case 'BlockHash':
     case 'CodeHash':
     case 'Hash':
-      return createType('Hash');
-
     case 'H256':
-      return createType('H256');
+      return registry.createType('H256');
 
     case 'H512':
-      return createType('H512');
+      return registry.createType('H512');
 
-    case 'Data':
+    case 'H160':
+      return registry.createType('H160');
+
+    case 'Raw':
     case 'Keys':
       return '';
 
@@ -100,6 +103,7 @@ export default function getInitValue (def: TypeDef): RawParamValue | RawParamVal
     case 'Digest':
     case 'Header':
     case 'KeyValue':
+    case 'LookupSource':
     case 'MisbehaviorReport':
     case 'Proposal':
     case 'Signature':
@@ -109,26 +113,35 @@ export default function getInitValue (def: TypeDef): RawParamValue | RawParamVal
       return undefined;
 
     case 'Extrinsic':
-      return new U8a();
+      return registry.createType('Raw');
 
     case 'Null':
       return null;
 
     default: {
+      let error: string | null = null;
+
       try {
-        const instance = createType(type as any);
+        const instance = registry.createType(type as 'u32');
         const raw = getTypeDef(instance.toRawType());
 
-        if (instance instanceof BN) {
-          return new BN(0);
-        } else if ([TypeDefInfo.Enum, TypeDefInfo.Struct].includes(raw.info)) {
-          return getInitValue(raw);
+        if (isBn(instance)) {
+          return BN_ZERO;
+        } else if ([TypeDefInfo.Struct].includes(raw.info)) {
+          return undefined;
+        } else if ([TypeDefInfo.Enum, TypeDefInfo.Tuple].includes(raw.info)) {
+          return getInitValue(registry, raw);
         }
-      } catch (error) {
-        // console.error(error.message);
+      } catch (e) {
+        error = (e as Error).message;
       }
 
-      console.warn(`Unable to determine default type for ${JSON.stringify(def)}`);
+      // we only want to want once, not spam
+      if (!warnList.includes(type)) {
+        warnList.push(type);
+        error && console.error(`params: initValue: ${error}`);
+        console.info(`params: initValue: No default value for type ${type} from ${JSON.stringify(def)}, using defaults`);
+      }
 
       return '0x';
     }

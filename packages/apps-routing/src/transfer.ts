@@ -1,16 +1,15 @@
-// Copyright 2017-2019 @polkadot/apps-routing authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/apps-routing authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { Routes } from './types';
+import type { TFunction } from 'i18next';
+import type { Route } from './types';
 
-import Transfer from '@polkadot/app-transfer';
-import TransferModal from '@polkadot/app-accounts/modals/Transfer';
+import Modal from '@polkadot/app-accounts/modals/Transfer';
 
-export default ([
-  {
-    Component: Transfer,
-    Modal: TransferModal,
+export default function create (t: TFunction): Route {
+  return {
+    Component: Modal,
+    Modal,
     display: {
       isHidden: false,
       needsAccounts: true,
@@ -18,10 +17,9 @@ export default ([
         'tx.balances.transfer'
       ]
     },
-    i18n: {
-      defaultValue: 'Transfer'
-    },
-    icon: 'send',
-    name: 'transfer'
-  }
-] as Routes);
+    group: 'accounts',
+    icon: 'paper-plane',
+    name: 'transfer',
+    text: t('nav.transfer', 'Transfer', { ns: 'apps-routing' })
+  };
+}

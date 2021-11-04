@@ -1,124 +1,119 @@
-// Copyright 2017-2019 @polkadot/app-staking authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
-import { BareProps } from './types';
+import type BN from 'bn.js';
+import type { AccountId, AccountIndex, Address } from '@polkadot/types/interfaces';
+import type { KeyringItemType } from '@polkadot/ui-keyring/types';
 
-import BN from 'bn.js';
 import React from 'react';
 import styled from 'styled-components';
-import { KeyringItemType } from '@polkadot/ui-keyring/types';
 
-import { classes, getAddressName, toShortAddress } from './util';
+import AccountName from './AccountName';
 import BalanceDisplay from './Balance';
 import BondedDisplay from './Bonded';
 import IdentityIcon from './IdentityIcon';
+import LockedVote from './LockedVote';
+import { toShortAddress } from './util';
 
-interface Props extends BareProps {
+interface Props {
   balance?: BN | BN[];
   bonded?: BN | BN[];
   children?: React.ReactNode;
+  className?: string;
   iconInfo?: React.ReactNode;
+  isHighlight?: boolean;
   isPadded?: boolean;
   isShort?: boolean;
+  label?: React.ReactNode;
+  labelBalance?: React.ReactNode;
+  nameExtra?: React.ReactNode;
+  onNameClick?: () => void;
+  summary?: React.ReactNode;
   type?: KeyringItemType;
-  value?: AccountId | AccountIndex | Address | string;
+  value?: AccountId | AccountIndex | Address | string | null | Uint8Array;
   withAddress?: boolean;
   withBalance?: boolean;
   withBonded?: boolean;
+  withLockedVote?: boolean;
+  withSidebar?: boolean;
+  withName?: boolean;
+  withShrink?: boolean;
 }
 
-function renderAddressOrName ({ isShort = true, withAddress = true, type }: Props, address: string): React.ReactNode {
-  if (!withAddress) {
-    return null;
-  }
-
-  const name = getAddressName(address, type);
-
-  return (
-    <div className={`ui--AddressMini-address ${name ? 'withName' : 'withAddr'}`}>{
-      name || (
-        isShort
-          ? toShortAddress(address)
-          : address
-      )
-    }</div>
-  );
-}
-
-function renderBalance ({ balance, value, withBalance = false }: Props): React.ReactNode {
-  if (!withBalance || !value) {
-    return null;
-  }
-
-  return (
-    <BalanceDisplay
-      balance={balance}
-      params={value}
-    />
-  );
-}
-
-function renderBonded ({ bonded, value, withBonded = false }: Props): React.ReactNode {
-  if (!withBonded || !value) {
-    return null;
-  }
-
-  return (
-    <BondedDisplay
-      bonded={bonded}
-      label=''
-      params={value}
-    />
-  );
-}
-
-function AddressMini (props: Props): React.ReactElement<Props> | null {
-  const { children, className, iconInfo, isPadded = true, style, value } = props;
-
+function AddressMini ({ balance, bonded, children, className = '', iconInfo, isHighlight, isPadded = true, label, labelBalance, nameExtra, onNameClick, summary, value, withAddress = true, withBalance = false, withBonded = false, withLockedVote = false, withName = true, withShrink = false, withSidebar = true }: Props): React.ReactElement<Props> | null {
   if (!value) {
     return null;
   }
 
-  const address = value.toString();
-
   return (
-    <div
-      className={classes('ui--AddressMini', isPadded ? 'padded' : '', className)}
-      style={style}
-    >
-      <div className='ui--AddressMini-info'>
-        {renderAddressOrName(props, address)}
-        {children}
-      </div>
+    <div className={`ui--AddressMini${isHighlight ? ' isHighlight' : ''}${isPadded ? ' padded' : ''}${withShrink ? ' withShrink' : ''} ${className}`}>
+      {label && (
+        <label className='ui--AddressMini-label'>{label}</label>
+      )}
       <div className='ui--AddressMini-icon'>
-        <IdentityIcon
-          size={24}
-          value={address}
-        />
+        <IdentityIcon value={value} />
         {iconInfo && (
           <div className='ui--AddressMini-icon-info'>
             {iconInfo}
           </div>
         )}
       </div>
+      <div className='ui--AddressMini-info'>
+        {withAddress && (
+          <div
+            className='ui--AddressMini-address'
+            onClick={onNameClick}
+          >
+            {withName
+              ? (
+                <AccountName
+                  value={value}
+                  withSidebar={withSidebar}
+                >
+                  {nameExtra}
+                </AccountName>
+              )
+              : toShortAddress(value)
+            }
+          </div>
+        )}
+        {children}
+      </div>
       <div className='ui--AddressMini-balances'>
-        {renderBalance(props)}
-        {renderBonded(props)}
+        {withBalance && (
+          <BalanceDisplay
+            balance={balance}
+            label={labelBalance}
+            params={value}
+          />
+        )}
+        {withBonded && (
+          <BondedDisplay
+            bonded={bonded}
+            label=''
+            params={value}
+          />
+        )}
+        {withLockedVote && (
+          <LockedVote params={value} />
+        )}
+        {summary && (
+          <div className='ui--AddressMini-summary'>{summary}</div>
+        )}
       </div>
     </div>
   );
 }
 
-export default styled(AddressMini)`
+export default React.memo(styled(AddressMini)`
   display: inline-block;
   padding: 0 0.25rem 0 1rem;
+  text-align: left;
   white-space: nowrap;
 
   &.padded {
     display: inline-block;
-    padding: 0.25rem 0 0 1rem;
+    padding: 0 1rem 0 0;
   }
 
   &.summary {
@@ -126,35 +121,79 @@ export default styled(AddressMini)`
     top: -0.2rem;
   }
 
-  .ui--AddressMini-address {
-    &.withAddr,
-    &.withName {
-      font-family: monospace;
-      max-width: 9rem;
-      min-width: 4em;
-      overflow: hidden;
-      text-align: right;
-      text-overflow: ellipsis;
+  .ui--AddressMini-info {
+    max-width: 12rem;
+    min-width: 12rem;
+
+    @media only screen and (max-width: 1800px) {
+      max-width: 11.5rem;
+      min-width: 11.5rem;
     }
 
-    &.withName {
-      text-transform: uppercase;
+    @media only screen and (max-width: 1700px) {
+      max-width: 11rem;
+      min-width: 11rem;
     }
+
+    @media only screen and (max-width: 1600px) {
+      max-width: 10.5rem;
+      min-width: 10.5rem;
+    }
+
+    @media only screen and (max-width: 1500px) {
+      max-width: 10rem;
+      min-width: 10rem;
+    }
+
+    @media only screen and (max-width: 1400px) {
+      max-width: 9.5rem;
+      min-width: 9.5rem;
+    }
+
+    @media only screen and (max-width: 1300px) {
+      max-width: 9rem;
+      min-width: 9rem;
+    }
+  }
+
+  .ui--AddressMini-address {
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    width: fit-content;
+    max-width: inherit;
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &.withShrink {
+    .ui--AddressMini-address {
+      min-width: 3rem;
+    }
+  }
+
+  .ui--AddressMini-label {
+    margin: 0 0 -0.5rem 2.25rem;
   }
 
   .ui--AddressMini-balances {
     display: grid;
 
-    .ui--Bonded {
+    .ui--Balance,
+    .ui--Bonded,
+    .ui--LockedVote {
       font-size: 0.75rem;
-      margin-right: 2.25rem;
+      margin-left: 2.25rem;
       margin-top: -0.5rem;
-      text-align: right;
+      text-align: left;
     }
   }
 
   .ui--AddressMini-icon {
-    margin: 0 0 0 0.5rem;
+    margin: 0 0.5rem 0 0;
 
     .ui--AddressMini-icon-info {
       position: absolute;
@@ -175,4 +214,12 @@ export default styled(AddressMini)`
     position: relative;
     vertical-align: middle;
   }
-`;
+
+  .ui--AddressMini-summary {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin-left: 2.25rem;
+    margin-top: -0.2rem;
+    text-align: left;
+  }
+`);

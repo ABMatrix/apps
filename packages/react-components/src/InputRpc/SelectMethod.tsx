@@ -1,33 +1,29 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
-import { RpcMethod } from '@polkadot/jsonrpc/types';
-import { DropdownOptions } from '../util/types';
-import { BareProps } from '../types';
+import type { DefinitionRpcExt } from '@polkadot/types/types';
+import type { DropdownOption } from '../util/types';
 
-import React from 'react';
-
-import map from '@polkadot/jsonrpc';
+import React, { useCallback } from 'react';
 
 import Dropdown from '../Dropdown';
-import { classes } from '../util';
+import useRpcs from './useRpcs';
 
-interface Props extends BareProps {
+interface Props {
+  className?: string;
   isError?: boolean;
-  onChange: (value: RpcMethod) => void;
-  options: DropdownOptions;
-  value: RpcMethod;
+  onChange: (value: DefinitionRpcExt) => void;
+  options: DropdownOption[];
+  value: DefinitionRpcExt;
 }
 
-function transform ({ value }: Props): (method: string) => RpcMethod {
-  return function (method: string): RpcMethod {
-    return map[value.section].methods[method];
-  };
-}
+function SelectMethod ({ className = '', isError, onChange, options, value }: Props): React.ReactElement<Props> | null {
+  const rpcs = useRpcs();
 
-export default function SelectMethod (props: Props): React.ReactElement<Props> | null {
-  const { className, isError, onChange, options, style, value } = props;
+  const _transform = useCallback(
+    (method: string) => rpcs[value.section][method],
+    [rpcs, value]
+  );
 
   if (!options.length) {
     return null;
@@ -35,14 +31,15 @@ export default function SelectMethod (props: Props): React.ReactElement<Props> |
 
   return (
     <Dropdown
-      className={classes('ui--DropdownLinked-Items', className)}
+      className={`ui--DropdownLinked-Items ${className}`}
       isError={isError}
       onChange={onChange}
       options={options}
-      style={style}
-      transform={transform(props)}
+      transform={_transform}
       value={value.method}
       withLabel={false}
     />
   );
 }
+
+export default React.memo(SelectMethod);

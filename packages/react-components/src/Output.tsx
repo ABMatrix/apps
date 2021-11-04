@@ -1,51 +1,60 @@
-// Copyright 2017-2019 @polkadot/react-components authors & contributors
-// This software may be modified and distributed under the terms
-// of the Apache-2.0 license. See the LICENSE file for details.
-
-import { BareProps } from './types';
+// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
+import styled from 'styled-components';
 
 import CopyButton from './CopyButton';
 import Labelled from './Labelled';
-import { classes } from './util';
 
-interface Props extends BareProps {
+interface Props {
   children?: React.ReactNode;
+  className?: string;
   help?: React.ReactNode;
+  isDisabled?: boolean;
   isError?: boolean;
+  isFull?: boolean;
   isHidden?: boolean;
   isMonospace?: boolean;
+  isSmall?: boolean;
+  isTrimmed?: boolean;
   label?: React.ReactNode;
-  value?: any;
+  labelExtra?: React.ReactNode;
+  value?: string;
   withCopy?: boolean;
   withLabel?: boolean;
 }
 
-export default function Output ({ className, children, help, isError, isHidden, isMonospace, label, style, value, withCopy = false, withLabel }: Props): React.ReactElement<Props> {
+function Output ({ children, className = '', help, isDisabled, isError, isFull, isHidden, isMonospace, isSmall, isTrimmed, label, labelExtra, value, withCopy = false, withLabel }: Props): React.ReactElement<Props> {
   return (
     <Labelled
       className={className}
       help={help}
+      isFull={isFull}
       isHidden={isHidden}
+      isSmall={isSmall}
       label={label}
-      style={style}
+      labelExtra={labelExtra}
       withLabel={withLabel}
     >
-      <div className={classes('ui--output', isError && 'error', isMonospace && 'monospace')}>
-        {value}
-        {children}
-        {
-          withCopy
-            ? (
-              <CopyButton
-                className='ui--output-button'
-                value={value}
-              />
-            )
-            : null
+      <div className={`ui--output ui dropdown selection ${isError ? ' error' : ''}${isMonospace ? ' monospace' : ''}${isDisabled ? ' disabled' : ''}`}>
+        {isTrimmed && value && (value.length > 256)
+          ? `${value.substr(0, 96)}…${value.substr(-96)}`
+          : value
         }
+        {children}
       </div>
+      {withCopy && (
+        <CopyButton value={value} />
+      )}
     </Labelled>
   );
 }
+
+export default React.memo(styled(Output)`
+  pre {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`);
