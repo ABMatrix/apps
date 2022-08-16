@@ -72,6 +72,7 @@ import mangata from './mangata';
 import manta from './manta';
 import mathchain from './mathchain';
 import moonbeam from './moonbeam';
+import bnk from './bnk';
 import mybank from './mybank';
 import neatcoin from './neatcoin';
 import neumann from './neumann';
@@ -217,6 +218,7 @@ const spec: Record<string, OverrideBundleDefinition> = {
   'mashnet-node': kilt,
   mathchain,
   'mathchain-galois': galois,
+  bnk,
   moonbase: moonbeam,
   moonbeam,
   moonriver: moonbeam,

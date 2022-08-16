@@ -40,6 +40,7 @@ export default {
     Litmus: 'litmus',
     Moonbase: 'moonbase',
     Moonbeam: 'moonbeam',
+    Bnk: 'bnk',
     Moonriver: 'moonriver',
     'Nodle Parachain': 'nodle',
     Pangolin: 'pangolin',
