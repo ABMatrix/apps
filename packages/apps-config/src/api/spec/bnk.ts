@@ -79,7 +79,7 @@ const TYPES_36_36: RegistryTypes = {
 const TYPES_37_42: RegistryTypes = {
     ...TYPES_36_36,
     StakingState: {
-        user: "AccountId20",
+        user: "AccountId",
         locked: "Balance",
         start_time: "u64"
     },
@@ -98,7 +98,7 @@ const TYPES_37_42: RegistryTypes = {
     ProviderId: "u32",
     ProviderInfo: {
         pid: "ProviderId",
-        owner: "AccountId20",
+        owner: "AccountId",
         devices: "Vec<DIdentity>",
         cap_pledge: "Balance",
         total_pledge: "Balance",

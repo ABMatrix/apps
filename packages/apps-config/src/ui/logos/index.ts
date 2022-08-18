@@ -139,6 +139,7 @@ import nodeMath from './nodes/math.svg';
 import nodeMinix from './nodes/minix.png';
 import moonbase from './nodes/moonbase_alpha.png';
 import moonbeam from './nodes/moonbeam.png';
+import bnk from './nodes/bnk.png';
 import moonriver from './nodes/moonriver.svg';
 import nodeMoonrock from './nodes/moonrock.png';
 import moonshadow from './nodes/moonshadow.png';
@@ -316,6 +317,8 @@ export const chainLogos = Object.entries({
   'Moonbase Development Testnet': moonbase,
   'Moonbase Stage': moonbase,
   Moonbeam: moonbeam,
+  'BoolNetwork Development Testnet': bnk,
+  'BoolNetwork Local Testnet': bnk,
   Moonriver: moonriver,
   Moonrock: nodeMoonrock,
   'Moonsama Development': chainMoonsamaDevelopment,
@@ -703,6 +706,7 @@ export const namedLogos: Record<string, unknown> = {
   minix: nodeMinix,
   moonbaseAlpha: moonbase,
   moonbeam,
+  bnk,
   moonriver,
   moonrock: nodeMoonrock,
   moonshadow,

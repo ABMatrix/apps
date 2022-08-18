@@ -218,7 +218,7 @@ const spec: Record<string, OverrideBundleDefinition> = {
   'mashnet-node': kilt,
   mathchain,
   'mathchain-galois': galois,
-  bnk,
+  'bnk': bnk,
   moonbase: moonbeam,
   moonbeam,
   moonriver: moonbeam,
