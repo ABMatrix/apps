@@ -195,6 +195,13 @@ const TYPES_43_154: RegistryTypes = {
         signature: "Vec<u8>",
         pubkey: "Vec<u8>"
     },
+    OnChainPayloadVRF: {
+        cid: "CommitteeId",
+        epoch: "u32",
+        pk: "Vec<u8>",
+        proof: "Vec<u8>",
+        fork_id: "u8"
+    },
 };
 export const bnkDefinitions: OverrideBundleDefinition = {
     types: [
