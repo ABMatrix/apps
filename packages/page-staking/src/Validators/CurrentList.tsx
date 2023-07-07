@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DeriveHeartbeats, DeriveStakingOverview } from '@polkadot/api-derive/types';
-import type { AccountId } from '@polkadot/types/interfaces';
+import type { AccountId20 } from '@polkadot/types/interfaces';
 import type { BN } from '@polkadot/util';
 import type { NominatedByMap, SortedTargets, ValidatorInfo } from '../types.js';
 
@@ -15,6 +15,7 @@ import { useApi, useBlockAuthors, useNextTick } from '@polkadot/react-hooks';
 import Filtering from '../Filtering.js';
 import { useTranslation } from '../translate.js';
 import Address from './Address/index.js';
+import {ethereumEncode} from "@polkadot/util-crypto";
 
 interface Props {
   className?: string;
@@ -48,11 +49,11 @@ function filterAccounts (isOwn: boolean, accounts: string[] = [], ownStashIds: s
     .filter((accountId) =>
       !without.includes(accountId) && (
         !isOwn ||
-        ownStashIds.includes(accountId)
+        ownStashIds.includes(ethereumEncode(accountId))
       )
     )
     .map((accountId): AccountExtend => [
-      accountId,
+      ethereumEncode(accountId),
       elected.includes(accountId),
       favorites.includes(accountId)
     ])
@@ -68,7 +69,7 @@ function filterAccounts (isOwn: boolean, accounts: string[] = [], ownStashIds: s
     });
 }
 
-function accountsToString (accounts: AccountId[]): string[] {
+function accountsToString (accounts: AccountId20[]): string[] {
   const result = new Array<string>(accounts.length);
 
   for (let i = 0; i < accounts.length; i++) {
@@ -194,11 +195,11 @@ function CurrentList ({ className, favorites, hasQueries, isIntentions, isOwn, m
           isMain={!isIntentions}
           isPara={paraValidators[address]}
           key={address}
-          lastBlock={byAuthor[address]}
+          lastBlock={byAuthor[address.toLowerCase()]}
           minCommission={minCommission}
           nominatedBy={nominatedBy?.[address]}
-          points={eraPoints[address]}
-          recentlyOnline={recentlyOnline?.[address]}
+          points={eraPoints[address.toLowerCase()]}
+          recentlyOnline={recentlyOnline?.[address.toLowerCase()]}
           toggleFavorite={toggleFavorite}
           validatorInfo={infoMap?.[address]}
         />

@@ -9,6 +9,7 @@ import { Badge } from '@polkadot/react-components';
 import { useAccounts } from '@polkadot/react-hooks';
 
 import MaxBadge from '../../MaxBadge.js';
+import {ethereumEncode} from "@polkadot/util-crypto";
 
 interface Props {
   isChilled?: boolean;
@@ -28,7 +29,7 @@ function Status ({ isChilled, isElected, isMain, isPara, isRelay, nominators = N
   const blockCount = onlineCount && onlineCount.toNumber();
 
   const isNominating = useMemo(
-    () => nominators.some(({ nominatorId }) => allAccounts.includes(nominatorId)),
+    () => nominators.some(({ nominatorId }) => allAccounts.includes(ethereumEncode(nominatorId))),
     [allAccounts, nominators]
   );
 

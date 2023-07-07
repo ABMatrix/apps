@@ -62,28 +62,29 @@ function getValRewards (api: ApiPromise, validatorEras: ValidatorWithEras[], era
   const allRewards: Record<string, DeriveStakerReward[]> = {};
 
   validatorEras.forEach(({ eras, stashId }): void => {
+    let stashId_1 = stashId.toLowerCase();
     eras.forEach((era): void => {
       const eraPoints = erasPoints.find((p) => p.era.eq(era));
       const eraRewards = erasRewards.find((r) => r.era.eq(era));
 
-      if (eraPoints?.eraPoints.gt(BN_ZERO) && eraPoints?.validators[stashId] && eraRewards) {
-        const reward = eraPoints.validators[stashId].mul(eraRewards.eraReward).div(eraPoints.eraPoints);
+      if (eraPoints?.eraPoints.gt(BN_ZERO) && eraPoints?.validators[stashId_1] && eraRewards) {
+        const reward = eraPoints.validators[stashId_1].mul(eraRewards.eraReward).div(eraPoints.eraPoints);
 
         if (!reward.isZero()) {
           const total = api.createType('Balance', reward);
 
-          if (!allRewards[stashId]) {
-            allRewards[stashId] = [];
+          if (!allRewards[stashId_1]) {
+            allRewards[stashId_1] = [];
           }
 
-          allRewards[stashId].push({
+          allRewards[stashId_1].push({
             era,
             eraReward: eraRewards.eraReward,
             isEmpty: false,
             isValidator: true,
             nominating: [],
             validators: {
-              [stashId]: {
+              [stashId_1]: {
                 total,
                 value: total
               }

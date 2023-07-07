@@ -10,6 +10,8 @@ import { createNamedHook } from './createNamedHook.js';
 import { useAccounts } from './useAccounts.js';
 import { useApi } from './useApi.js';
 import { useCall } from './useCall.js';
+import {hexToU8a} from "@polkadot/util";
+import {ethereumEncode} from "@polkadot/util-crypto";
 
 type IsInKeyring = boolean;
 
@@ -22,8 +24,9 @@ function getStashes (allAccounts: string[], ownBonded: Option<AccountId>[], ownL
 
   ownLedger.forEach((ledger): void => {
     if (ledger.isSome) {
-      const stashId = ledger.unwrap().stash.toString();
-
+      const stashId_1 = ledger.unwrap().stash.toString();
+      const addr = hexToU8a(stashId_1);
+      const stashId = ethereumEncode(addr);
       !result.some(([accountId]) => accountId === stashId) && result.push([stashId, false]);
     }
   });

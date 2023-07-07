@@ -6,10 +6,10 @@ import type { DeriveStakingAccount } from '@polkadot/api-derive/types';
 import type { AccountId, ValidatorPrefs } from '@polkadot/types/interfaces';
 import type { Codec, ITuple } from '@polkadot/types/types';
 import type { StakerState } from './types.js';
-
+import { ethereumEncode } from '@polkadot/util-crypto';
 import { useEffect, useMemo, useState } from 'react';
 
-import { u8aConcat, u8aToHex } from '@polkadot/util';
+import {hexToU8a, u8aConcat, u8aToHex} from '@polkadot/util';
 
 import { createNamedHook } from './createNamedHook.js';
 import { useAccounts } from './useAccounts.js';
@@ -37,7 +37,10 @@ function getStakerState (stashId: string, allAccounts: string[], [isOwnStash, { 
     ? [..._sessionIds.values()]
     : _sessionIds;
   const currConcat = u8aConcat(...sessionIds.map((id) => id.toU8a()));
-  const controllerId = toIdString(_controllerId);
+  const controllerId_1 = toIdString(_controllerId);
+
+  const addr = hexToU8a(controllerId_1);
+  const controllerId = ethereumEncode(addr);
 
   return {
     controllerId,

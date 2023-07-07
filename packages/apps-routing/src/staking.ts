@@ -7,9 +7,10 @@ import type { PalletStakingExposure } from '@polkadot/types/lookup';
 import type { Route } from './types.js';
 
 import Component from '@polkadot/app-staking';
-import { ZERO_ACCOUNT } from '@polkadot/react-hooks/useWeight';
 import { unwrapStorageType } from '@polkadot/types/util';
 import { assert, BN_ONE } from '@polkadot/util';
+
+export const ZERO_ACCOUNT = '0x9876543210abcdef9876543210abcdef98765432';
 
 function needsApiCheck (api: ApiPromise): boolean {
   try {

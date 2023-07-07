@@ -3,7 +3,7 @@
 
 import type { DeriveStakingOverview } from '@polkadot/api-derive/types';
 import type { AppProps as Props } from '@polkadot/react-components/types';
-import type { ElectionStatus, ParaValidatorIndex, ValidatorId } from '@polkadot/types/interfaces';
+import type {ElectionStatus, ParaValidatorIndex, ValidatorId} from '@polkadot/types/interfaces';
 import type { BN } from '@polkadot/util';
 
 import React, { useCallback, useMemo, useState } from 'react';
