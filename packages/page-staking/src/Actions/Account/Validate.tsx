@@ -1,22 +1,24 @@
-// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// Copyright 2017-2023 @polkadot/app-staking authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ValidateInfo } from '../partials/types';
+import type { BN } from '@polkadot/util';
+import type { ValidateInfo } from '../partials/types.js';
 
 import React, { useState } from 'react';
 
 import { Modal, TxButton } from '@polkadot/react-components';
 
-import { useTranslation } from '../../translate';
-import ValidatePartial from '../partials/Validate';
+import { useTranslation } from '../../translate.js';
+import ValidatePartial from '../partials/Validate.js';
 
 interface Props {
   controllerId: string;
+  minCommission?: BN;
   onClose: () => void;
   stashId: string;
 }
 
-function Validate ({ controllerId, onClose, stashId }: Props): React.ReactElement<Props> {
+function Validate ({ controllerId, minCommission, onClose, stashId }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [{ validateTx }, setTx] = useState<ValidateInfo>({});
 
@@ -29,6 +31,7 @@ function Validate ({ controllerId, onClose, stashId }: Props): React.ReactElemen
       <Modal.Content>
         <ValidatePartial
           controllerId={controllerId}
+          minCommission={minCommission}
           onChange={setTx}
           stashId={stashId}
           withFocus

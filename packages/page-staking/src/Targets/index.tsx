@@ -1,38 +1,39 @@
-// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// Copyright 2017-2023 @polkadot/app-staking authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { DeriveHasIdentity, DeriveStakingOverview } from '@polkadot/api-derive/types';
 import type { StakerState } from '@polkadot/react-hooks/types';
-import type { NominatedBy, SortedTargets, TargetSortBy, ValidatorInfo } from '../types';
+import type { u32 } from '@polkadot/types-codec';
+import type { BN } from '@polkadot/util';
+import type { NominatedByMap, SortedTargets, TargetSortBy, ValidatorInfo } from '../types.js';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import styled from 'styled-components';
 
-import { Button, Icon, Table, Toggle } from '@polkadot/react-components';
+import Legend from '@polkadot/app-staking2/Legend';
+import { Button, Icon, styled, Table, Toggle } from '@polkadot/react-components';
 import { useApi, useAvailableSlashes, useBlocksPerDays, useSavedFlags } from '@polkadot/react-hooks';
 import { BN_HUNDRED } from '@polkadot/util';
 
-import { MAX_NOMINATIONS } from '../constants';
-import ElectionBanner from '../ElectionBanner';
-import Filtering from '../Filtering';
-import Legend from '../Legend';
-import { useTranslation } from '../translate';
-import useIdentities from '../useIdentities';
-import useNominations from '../useNominations';
-import Nominate from './Nominate';
-import Summary from './Summary';
-import useOwnNominators from './useOwnNominators';
-import Validator from './Validator';
+import { MAX_NOMINATIONS } from '../constants.js';
+import ElectionBanner from '../ElectionBanner.js';
+import Filtering from '../Filtering.js';
+import { useTranslation } from '../translate.js';
+import useIdentities from '../useIdentities.js';
+import Nominate from './Nominate.js';
+import Summary from './Summary.js';
+import useOwnNominators from './useOwnNominators.js';
+import Validator from './Validator.js';
 
 interface Props {
   className?: string;
   isInElection: boolean;
+  nominatedBy?: NominatedByMap;
   ownStashes?: StakerState[];
   stakingOverview?: DeriveStakingOverview;
   targets: SortedTargets;
   toggleFavorite: (address: string) => void;
   toggleLedger: () => void;
+  toggleNominatedBy: () => void;
 }
 
 interface SavedFlags {
@@ -60,7 +61,7 @@ const CLASSES: Record<string, string> = {
   rankBondOwn: 'media--900'
 };
 const MAX_CAP_PERCENT = 100; // 75 if only using numNominators
-const MAX_COMM_PERCENT = 20; // -1 for median
+const MAX_COMM_PERCENT = 10; // -1 for median
 const MAX_DAYS = 7;
 const SORT_KEYS = ['rankBondTotal', 'rankBondOwn', 'rankBondOther', 'rankOverall'];
 
@@ -74,7 +75,7 @@ function overlapsDisplay (displays: (string[])[], test: string[]): boolean {
   );
 }
 
-function applyFilter (validators: ValidatorInfo[], medianComm: number, allIdentity: Record<string, DeriveHasIdentity>, { daysPayout, isBabe, maxPaid, withElected, withGroup, withIdentity, withPayout, withoutComm, withoutOver }: Flags, nominatedBy?: Record<string, NominatedBy[]>): ValidatorInfo[] {
+function applyFilter (validators: ValidatorInfo[], medianComm: number, allIdentity: Record<string, DeriveHasIdentity>, { daysPayout, isBabe, maxPaid, withElected, withGroup, withIdentity, withPayout, withoutComm, withoutOver }: Flags, nominatedBy?: NominatedByMap): ValidatorInfo[] {
   const displays: (string[])[] = [];
   const parentIds: string[] = [];
 
@@ -93,7 +94,7 @@ function applyFilter (validators: ValidatorInfo[], medianComm: number, allIdenti
       (!withPayout || !isBabe || (!!lastPayout && daysPayout.gte(lastPayout))) &&
       (!withoutComm || (
         MAX_COMM_PERCENT > 0
-          ? (commissionPer < MAX_COMM_PERCENT)
+          ? (commissionPer <= MAX_COMM_PERCENT)
           : (!medianComm || (commissionPer <= medianComm)))
       ) &&
       (!withoutOver || !maxPaid || maxPaid.muln(MAX_CAP_PERCENT).div(BN_HUNDRED).gten(nomCount))
@@ -138,14 +139,18 @@ function applyFilter (validators: ValidatorInfo[], medianComm: number, allIdenti
 }
 
 function sort (sortBy: TargetSortBy, sortFromMax: boolean, validators: ValidatorInfo[]): ValidatorInfo[] {
+  // Use slice to create new array, so that sorting triggers component render
   return validators
-    .sort((a, b) => sortFromMax
-      ? a[sortBy] - b[sortBy]
-      : b[sortBy] - a[sortBy]
+    .slice(0)
+    .sort((a, b) =>
+      sortFromMax
+        ? a[sortBy] - b[sortBy]
+        : b[sortBy] - a[sortBy]
     )
-    .sort((a, b) => a.isFavorite === b.isFavorite
-      ? 0
-      : (a.isFavorite ? -1 : 1)
+    .sort((a, b) =>
+      a.isFavorite === b.isFavorite
+        ? 0
+        : (a.isFavorite ? -1 : 1)
     );
 }
 
@@ -188,13 +193,12 @@ const DEFAULT_NAME = { isQueryFiltered: false, nameFilter: '' };
 
 const DEFAULT_SORT: SortState = { sortBy: 'rankOverall', sortFromMax: true };
 
-function Targets ({ className = '', isInElection, ownStashes, targets: { avgStaked, inflation: { stakedReturn }, lowStaked, medianComm, minNominated, minNominatorBond, nominators, totalIssuance, totalStaked, validatorIds, validators }, toggleFavorite, toggleLedger }: Props): React.ReactElement<Props> {
+function Targets ({ className = '', isInElection, nominatedBy, ownStashes, targets: { avgStaked, inflation: { stakedReturn }, lastEra, lowStaked, medianComm, minNominated, minNominatorBond, nominators, totalIssuance, totalStaked, validatorIds, validators }, toggleFavorite, toggleLedger, toggleNominatedBy }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { api } = useApi();
   const allSlashes = useAvailableSlashes();
   const daysPayout = useBlocksPerDays(MAX_DAYS);
   const ownNominators = useOwnNominators(ownStashes);
-  const nominatedBy = useNominations(true);
   const allIdentity = useIdentities(validatorIds);
   const [selected, setSelected] = useState<string[]>([]);
   const [{ isQueryFiltered, nameFilter }, setNameFilter] = useState(DEFAULT_NAME);
@@ -237,7 +241,15 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
 
   useEffect((): void => {
     toggleLedger();
-  }, [toggleLedger]);
+    toggleNominatedBy();
+  }, [toggleLedger, toggleNominatedBy]);
+
+  const maxNominations = useMemo(
+    () => api.consts.staking.maxNominations
+      ? (api.consts.staking.maxNominations as u32).toNumber()
+      : MAX_NOMINATIONS,
+    [api]
+  );
 
   const myNominees = useMemo(
     () => extractNominees(ownNominators),
@@ -265,14 +277,9 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
 
   const _selectProfitable = useCallback(
     () => filtered && setSelected(
-      selectProfitable(
-        filtered,
-        api.consts.staking.maxNominations
-          ? api.consts.staking.maxNominations.toNumber()
-          : MAX_NOMINATIONS
-      )
+      selectProfitable(filtered, maxNominations)
     ),
-    [api, filtered]
+    [filtered, maxNominations]
   );
 
   const _setNameFilter = useCallback(
@@ -280,12 +287,14 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
     []
   );
 
-  const header = useMemo(() => [
-    [t('validators'), 'start', 3],
-    [t('payout'), 'media--1400'],
-    [t('nominators'), 'media--1200', 2],
-    [t('comm.'), 'media--1100'],
-    ...(SORT_KEYS as (keyof typeof labelsRef.current)[]).map((header) => [
+  // False positive, this is part of the type...
+  // eslint-disable-next-line func-call-spacing
+  const header = useMemo<[React.ReactNode?, string?, number?, (() => void)?][]>(() => [
+    [t<string>('validators'), 'start', 4],
+    [t<string>('payout'), 'media--1400'],
+    [t<string>('nominators'), 'media--1200', 2],
+    [t<string>('comm.'), 'media--1100'],
+    ...(SORT_KEYS as (keyof typeof labelsRef.current)[]).map((header): [React.ReactNode?, string?, number?, (() => void)?] => [
       <>{labelsRef.current[header]}<Icon icon={sortBy === header ? (sortFromMax ? 'chevron-down' : 'chevron-up') : 'minus'} /></>,
       `${sorted ? `isClickable ${sortBy === header ? 'highlight--border' : ''} number` : 'number'} ${CLASSES[header] || ''}`,
       1,
@@ -305,7 +314,7 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
       >
         <Toggle
           className='staking--buttonToggle'
-          label={t<string>('single from operator')}
+          label={t<string>('one validator per operator')}
           onChange={setToggle.withGroup}
           value={toggles.withGroup}
         />
@@ -313,8 +322,8 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
           className='staking--buttonToggle'
           label={
             MAX_COMM_PERCENT > 0
-              ? t<string>('no {{maxComm}}%+ comm', { replace: { maxComm: MAX_COMM_PERCENT } })
-              : t<string>('no median+ comm')
+              ? t<string>('comm. <= {{maxComm}}%', { replace: { maxComm: MAX_COMM_PERCENT } })
+              : t<string>('comm. <= median')
           }
           onChange={setToggle.withoutComm}
           value={toggles.withoutComm}
@@ -323,8 +332,8 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
           className='staking--buttonToggle'
           label={
             MAX_CAP_PERCENT < 100
-              ? t<string>('no {{maxCap}}%+ capacity', { replace: { maxCap: MAX_CAP_PERCENT } })
-              : t<string>('no at capacity')
+              ? t<string>('capacity < {{maxCap}}%', { replace: { maxCap: MAX_CAP_PERCENT } })
+              : t<string>('with capacity')
           }
           onChange={setToggle.withoutOver}
           value={toggles.withoutOver}
@@ -340,7 +349,7 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
         )}
         <Toggle
           className='staking--buttonToggle'
-          label={t<string>('only elected')}
+          label={t<string>('currently elected')}
           onChange={setToggle.withElected}
           value={toggles.withElected}
         />
@@ -351,14 +360,13 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
   const displayList = isQueryFiltered
     ? validators
     : sorted;
-  const maxNominations = api.consts.staking.maxNominations
-    ? api.consts.staking.maxNominations.toNumber()
-    : MAX_NOMINATIONS;
+  const canSelect = selected.length < maxNominations;
 
   return (
-    <div className={className}>
+    <StyledDiv className={className}>
       <Summary
         avgStaked={avgStaked}
+        lastEra={lastEra}
         lowStaked={lowStaked}
         minNominated={minNominated}
         minNominatorBond={minNominatorBond}
@@ -386,18 +394,19 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
         empty={sorted && t<string>('No active validators to check')}
         emptySpinner={
           <>
-            {!(validators && allIdentity) && <div>{t('Retrieving validators')}</div>}
-            {!nominatedBy && <div>{t('Retrieving nominators')}</div>}
+            {!(validators && allIdentity) && <div>{t<string>('Retrieving validators')}</div>}
+            {!nominatedBy && <div>{t<string>('Retrieving nominators')}</div>}
+            {!displayList && <div>{t<string>('Preparing target display')}</div>}
           </>
         }
         filter={filter}
         header={header}
         legend={<Legend />}
       >
-        {displayList?.map((info): React.ReactNode =>
+        {displayList && displayList.map((info): React.ReactNode =>
           <Validator
             allSlashes={allSlashes}
-            canSelect={selected.length < maxNominations}
+            canSelect={canSelect}
             filterName={nameFilter}
             info={info}
             isNominated={myNominees.includes(info.key)}
@@ -409,11 +418,11 @@ function Targets ({ className = '', isInElection, ownStashes, targets: { avgStak
           />
         )}
       </Table>
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(Targets)`
+const StyledDiv = styled.div`
   text-align: center;
 
   th.isClickable {
@@ -425,4 +434,6 @@ export default React.memo(styled(Targets)`
   .ui--Table {
     overflow-x: auto;
   }
-`);
+`;
+
+export default React.memo(Targets);

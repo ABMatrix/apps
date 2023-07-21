@@ -1,23 +1,24 @@
-// Copyright 2017-2021 @polkadot/app-tech-comm authors & contributors
+// Copyright 2017-2023 @polkadot/app-tech-comm authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
-import type { AccountId, Hash } from '@polkadot/types/interfaces';
+import type { CollectiveType } from '@polkadot/react-hooks/types';
+import type { Hash } from '@polkadot/types/interfaces';
+import type { BN } from '@polkadot/util';
 
 import React, { useState } from 'react';
 
 import { Button, MarkWarning, Modal, TxButton, VoteAccount } from '@polkadot/react-components';
 import { useAccounts, useApi, useCollectiveInstance, useToggle } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   hash: Hash | string;
   isMember: boolean;
   members: string[];
-  prime?: AccountId | null;
+  prime?: string | null;
   proposalId: BN | number;
-  type: 'membership' | 'technicalCommittee';
+  type: CollectiveType;
 }
 
 function Voting ({ hash, isMember, members, prime, proposalId, type }: Props): React.ReactElement<Props> | null {
@@ -45,7 +46,7 @@ function Voting ({ hash, isMember, members, prime, proposalId, type }: Props): R
               filter={members}
               onChange={setAccountId}
             />
-            {(accountId === prime?.toString()) && (
+            {accountId === prime && (
               <MarkWarning content={t<string>('You are voting with this collective\'s prime account. The vote will be the default outcome in case of any abstentions.')} />
             )}
           </Modal.Content>

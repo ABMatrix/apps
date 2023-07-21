@@ -1,16 +1,16 @@
-// Copyright 2017-2021 @polkadot/app-assets authors & contributors
+// Copyright 2017-2023 @polkadot/app-assets authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { PalletAssetsAssetDetails, PalletAssetsAssetMetadata } from '@polkadot/types/lookup';
+import type { BN } from '@polkadot/util';
 
 import React from 'react';
 
 import { Button } from '@polkadot/react-components';
 import { useToggle } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../../translate';
-import Modal from './Mint';
+import { useTranslation } from '../../translate.js';
+import Modal from './Mint.js';
 
 interface Props {
   className?: string;

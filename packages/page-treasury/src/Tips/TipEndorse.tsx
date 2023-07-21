@@ -1,15 +1,15 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { DeriveBalancesAll } from '@polkadot/api-derive/types';
+import type { BN } from '@polkadot/util';
 
 import React, { useState } from 'react';
 
 import { Button, InputAddress, InputBalance, MarkWarning, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useCall, useToggle } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   defaultId: string | null;
@@ -21,7 +21,7 @@ interface Props {
   recipient: string;
 }
 
-const transformBalance = {
+const OPT = {
   transform: ({ freeBalance, reservedBalance }: DeriveBalancesAll): BN =>
     freeBalance.add(reservedBalance)
 };
@@ -32,7 +32,7 @@ function TipEndorse ({ defaultId, hash, isMember, isTipped, median, members, rec
   const [isOpen, toggleOpen] = useToggle();
   const [accountId, setAccountId] = useState<string | null>(defaultId);
   const [value, setValue] = useState<BN | undefined>();
-  const totalBalance = useCall<BN>(api.derive.balances?.all, [recipient], transformBalance);
+  const totalBalance = useCall<BN>(api.derive.balances?.all, [recipient], OPT);
 
   const tipTx = (api.tx.tips || api.tx.treasury).tip;
 
@@ -64,7 +64,6 @@ function TipEndorse ({ defaultId, hash, isMember, isTipped, median, members, rec
             <Modal.Columns hint={t<string>('Your endorsement will be applied for this account.')}>
               <InputAddress
                 filter={members}
-                help={t<string>('Select the account you wish to submit the tip from.')}
                 label={t<string>('submit with account')}
                 onChange={setAccountId}
                 type='account'
@@ -75,7 +74,6 @@ function TipEndorse ({ defaultId, hash, isMember, isTipped, median, members, rec
               <InputBalance
                 autoFocus
                 defaultValue={median}
-                help={t<string>('The tip amount that should be allocated')}
                 isZeroable
                 label={t<string>('value')}
                 onChange={setValue}

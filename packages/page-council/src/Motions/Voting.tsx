@@ -1,14 +1,15 @@
-// Copyright 2017-2021 @polkadot/app-council authors & contributors
+// Copyright 2017-2023 @polkadot/app-council authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AccountId, Hash, Proposal, ProposalIndex } from '@polkadot/types/interfaces';
 
 import React, { useState } from 'react';
 
-import { Button, MarkWarning, Modal, ProposedAction, TxButton, VoteAccount } from '@polkadot/react-components';
+import { Button, MarkWarning, Modal, TxButton, VoteAccount } from '@polkadot/react-components';
 import { useAccounts, useApi, useCollectiveInstance, useToggle } from '@polkadot/react-hooks';
+import { ProposedAction } from '@polkadot/react-params';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   hash: Hash;
@@ -16,7 +17,7 @@ interface Props {
   isDisabled: boolean;
   members: string[];
   prime?: AccountId | null;
-  proposal: Proposal;
+  proposal: Proposal | null;
 }
 
 function Voting ({ hash, idNumber, isDisabled, members, prime, proposal }: Props): React.ReactElement<Props> | null {
@@ -70,7 +71,7 @@ function Voting ({ hash, idNumber, isDisabled, members, prime, proposal }: Props
             />
             <TxButton
               accountId={accountId}
-              icon='check'
+              icon='check-to-slot'
               isDisabled={isDisabled}
               label={t<string>('Vote Aye')}
               onStart={toggleVoting}
@@ -81,7 +82,7 @@ function Voting ({ hash, idNumber, isDisabled, members, prime, proposal }: Props
         </Modal>
       )}
       <Button
-        icon='check'
+        icon='check-to-slot'
         isDisabled={isDisabled}
         label={t<string>('Vote')}
         onClick={toggleVoting}

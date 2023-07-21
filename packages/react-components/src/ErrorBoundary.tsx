@@ -1,11 +1,11 @@
-// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// Copyright 2017-2023 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { I18nProps } from './types';
+import type { I18nProps } from './types.js';
 
 import React from 'react';
 
-import translate from './translate';
+import translate from './translate.js';
 
 interface Props extends I18nProps {
   children: React.ReactNode;
@@ -71,4 +71,4 @@ class ErrorBoundary extends React.Component<Props> {
   }
 }
 
-export default translate(ErrorBoundary);
+export default translate<React.ComponentType<Props>>(ErrorBoundary);

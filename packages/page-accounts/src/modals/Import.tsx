@@ -1,20 +1,21 @@
-// Copyright 2017-2021 @polkadot/app-accounts authors & contributors
+// Copyright 2017-2023 @polkadot/app-accounts authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Dispatch, SetStateAction } from 'react';
 import type { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 import type { ActionStatus } from '@polkadot/react-components/Status/types';
-import type { ModalProps } from '../types';
+import type { HexString } from '@polkadot/util/types';
+import type { ModalProps } from '../types.js';
 
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { AddressRow, Button, InputAddress, InputFile, MarkError, MarkWarning, Modal, Password } from '@polkadot/react-components';
 import { useApi } from '@polkadot/react-hooks';
 import { keyring } from '@polkadot/ui-keyring';
-import { assert, u8aToString } from '@polkadot/util';
+import { assert, nextTick, u8aToString } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
-import ExternalWarning from './ExternalWarning';
+import { useTranslation } from '../translate.js';
+import ExternalWarning from './ExternalWarning.js';
 
 interface Props extends ModalProps {
   className?: string;
@@ -27,9 +28,9 @@ interface PassState {
   password: string;
 }
 
-const acceptedFormats = ['application/json', 'text/plain'].join(', ');
+const acceptedFormats = ['application/json', 'text/plain'];
 
-function parseFile (file: Uint8Array, setError: Dispatch<SetStateAction<string | null>>, isEthereum: boolean, genesisHash?: string | null): KeyringPair | null {
+function parseFile (file: Uint8Array, setError: Dispatch<SetStateAction<string | null>>, isEthereum: boolean, genesisHash?: HexString | null): KeyringPair | null {
   try {
     const pair = keyring.createFromJson(JSON.parse(u8aToString(file)) as KeyringPair$Json, { genesisHash });
 
@@ -56,7 +57,7 @@ function Import ({ className = '', onClose, onStatusChange }: Props): React.Reac
   const [error, setError] = useState<string | null>(null);
   const [{ isPassValid, password }, setPass] = useState<PassState>({ isPassValid: false, password: '' });
   const apiGenesisHash = useMemo(() => isDevelopment ? null : api.genesisHash.toHex(), [api, isDevelopment]);
-  const differentGenesis = useMemo(() => pair?.meta.genesisHash && pair.meta.genesisHash !== apiGenesisHash, [apiGenesisHash, pair]);
+  const differentGenesis = useMemo(() => !!pair?.meta.genesisHash && pair.meta.genesisHash !== apiGenesisHash, [apiGenesisHash, pair]);
 
   const _onChangeFile = useCallback(
     (file: Uint8Array) => setPair(parseFile(file, setError, isEthereum, apiGenesisHash)),
@@ -75,7 +76,7 @@ function Import ({ className = '', onClose, onStatusChange }: Props): React.Reac
       }
 
       setIsBusy(true);
-      setTimeout((): void => {
+      nextTick((): void => {
         const status: Partial<ActionStatus> = { action: 'restore' };
 
         try {
@@ -100,7 +101,7 @@ function Import ({ className = '', onClose, onStatusChange }: Props): React.Reac
         if (status.status !== 'error') {
           onClose();
         }
-      }, 0);
+      });
     },
     [onClose, onStatusChange, pair, password, t]
   );
@@ -124,7 +125,6 @@ function Import ({ className = '', onClose, onStatusChange }: Props): React.Reac
           <InputFile
             accept={acceptedFormats}
             className='full'
-            help={t<string>('Select the JSON key file that was downloaded when you created the account. This JSON file contains your private key encrypted with your password.')}
             isError={!pair}
             label={t<string>('backup file')}
             onChange={_onChangeFile}
@@ -135,7 +135,6 @@ function Import ({ className = '', onClose, onStatusChange }: Props): React.Reac
           <Password
             autoFocus
             className='full'
-            help={t<string>('Type the password chosen at the account creation. It was used to encrypt your account\'s private key in the backup file.')}
             isError={!isPassValid}
             label={t<string>('password')}
             onChange={_onChangePass}

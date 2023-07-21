@@ -1,14 +1,13 @@
-// Copyright 2017-2021 @polkadot/apps authors & contributors
+// Copyright 2017-2023 @polkadot/apps authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Group } from './types';
+import type { Group } from './types.js';
 
-import React, { useCallback } from 'react';
-import styled from 'styled-components';
+import React, { useCallback, useMemo } from 'react';
 
-import { Icon } from '@polkadot/react-components';
+import { Icon, styled } from '@polkadot/react-components';
 
-import Network from './Network';
+import Network from './Network.js';
 
 interface Props {
   affinities: Record<string, string>;
@@ -17,7 +16,7 @@ interface Props {
   className?: string;
   index: number;
   isSelected: boolean;
-  setApiUrl: (apiUrl: string) => void;
+  setApiUrl: (network: string, apiUrl: string) => void;
   setGroup: (groupIndex: number) => void;
   value: Group;
 }
@@ -28,8 +27,13 @@ function GroupDisplay ({ affinities, apiUrl, children, className = '', index, is
     [index, isSelected, setGroup]
   );
 
+  const filtered = useMemo(
+    () => networks.filter(({ isUnreachable }) => !isUnreachable),
+    [networks]
+  );
+
   return (
-    <div className={`${className}${isSelected ? ' isSelected' : ''}`}>
+    <StyledDiv className={`${className}${isSelected ? ' isSelected' : ''}`}>
       <div
         className={`groupHeader${isSpaced ? ' isSpaced' : ''}`}
         onClick={_setGroup}
@@ -40,7 +44,7 @@ function GroupDisplay ({ affinities, apiUrl, children, className = '', index, is
       {isSelected && (
         <>
           <div className='groupNetworks'>
-            {networks.map((network, index): React.ReactNode => (
+            {filtered.map((network, index): React.ReactNode => (
               <Network
                 affinity={affinities[network.name]}
                 apiUrl={apiUrl}
@@ -53,11 +57,11 @@ function GroupDisplay ({ affinities, apiUrl, children, className = '', index, is
           {children}
         </>
       )}
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(GroupDisplay)`
+const StyledDiv = styled.div`
   .groupHeader {
     border-radius: 0.25rem;
     cursor: pointer;
@@ -82,4 +86,6 @@ export default React.memo(styled(GroupDisplay)`
   .groupNetworks {
     padding: 0.25rem 0 0.5rem 1rem;
   }
-`);
+`;
+
+export default React.memo(GroupDisplay);

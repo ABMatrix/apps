@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/react-hooks authors & contributors
+// Copyright 2017-2023 @polkadot/react-hooks authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Option } from '@polkadot/types';
@@ -6,10 +6,12 @@ import type { AccountId, StakingLedger } from '@polkadot/types/interfaces';
 
 import { useMemo } from 'react';
 
-import { createNamedHook } from './createNamedHook';
-import { useAccounts } from './useAccounts';
-import { useApi } from './useApi';
-import { useCall } from './useCall';
+import { createNamedHook } from './createNamedHook.js';
+import { useAccounts } from './useAccounts.js';
+import { useApi } from './useApi.js';
+import { useCall } from './useCall.js';
+import {hexToU8a} from "@polkadot/util";
+import {ethereumEncode} from "@polkadot/util-crypto";
 
 type IsInKeyring = boolean;
 
@@ -22,8 +24,9 @@ function getStashes (allAccounts: string[], ownBonded: Option<AccountId>[], ownL
 
   ownLedger.forEach((ledger): void => {
     if (ledger.isSome) {
-      const stashId = ledger.unwrap().stash.toString();
-
+      const stashId_1 = ledger.unwrap().stash.toString();
+      const addr = hexToU8a(stashId_1);
+      const stashId = ethereumEncode(addr);
       !result.some(([accountId]) => accountId === stashId) && result.push([stashId, false]);
     }
   });
@@ -31,26 +34,32 @@ function getStashes (allAccounts: string[], ownBonded: Option<AccountId>[], ownL
   return result;
 }
 
-function useOwnStashesImpl (): [string, IsInKeyring][] | undefined {
-  const { allAccounts, hasAccounts } = useAccounts();
+function useOwnStashesImpl (additional?: string[]): [string, IsInKeyring][] | undefined {
+  const { allAccounts } = useAccounts();
   const { api } = useApi();
-  const ownBonded = useCall<Option<AccountId>[]>(hasAccounts && api.query.staking?.bonded.multi, [allAccounts]);
-  const ownLedger = useCall<Option<StakingLedger>[]>(hasAccounts && api.query.staking?.ledger.multi, [allAccounts]);
+
+  const ids = useMemo(
+    () => allAccounts.concat(additional || []),
+    [allAccounts, additional]
+  );
+
+  const ownBonded = useCall<Option<AccountId>[]>(ids.length !== 0 && api.query.staking?.bonded.multi, [ids]);
+  const ownLedger = useCall<Option<StakingLedger>[]>(ids.length !== 0 && api.query.staking?.ledger.multi, [ids]);
 
   return useMemo(
-    () => hasAccounts
+    () => ids.length
       ? ownBonded && ownLedger
-        ? getStashes(allAccounts, ownBonded, ownLedger)
+        ? getStashes(ids, ownBonded, ownLedger)
         : undefined
       : [],
-    [allAccounts, hasAccounts, ownBonded, ownLedger]
+    [ids, ownBonded, ownLedger]
   );
 }
 
 export const useOwnStashes = createNamedHook('useOwnStashes', useOwnStashesImpl);
 
-function useOwnStashIdsImpl (): string[] | undefined {
-  const ownStashes = useOwnStashes();
+function useOwnStashIdsImpl (additional?: string[]): string[] | undefined {
+  const ownStashes = useOwnStashes(additional);
 
   return useMemo(
     () => ownStashes

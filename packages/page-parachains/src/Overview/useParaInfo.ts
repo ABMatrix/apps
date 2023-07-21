@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/app-parachains authors & contributors
+// Copyright 2017-2023 @polkadot/app-parachains authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Option, Vec } from '@polkadot/types';
@@ -7,8 +7,6 @@ import type { PolkadotRuntimeCommonParasRegistrarParaInfo, PolkadotRuntimeParach
 import type { Codec, ITuple } from '@polkadot/types/types';
 
 import { createNamedHook, useApi, useCallMulti } from '@polkadot/react-hooks';
-
-import { sliceHex } from '../util';
 
 type QueryResult = [Option<HeadData>, Option<BlockNumber>, Option<PolkadotRuntimeParachainsParasParaLifecycle>, Vec<Codec>, Vec<Codec>, Vec<Codec>, Vec<Codec>, Option<BlockNumber>, Option<CandidatePendingAvailability>, Option<PolkadotRuntimeCommonParasRegistrarParaInfo>, Option<ITuple<[AccountId, BalanceOf]>>[]];
 
@@ -26,7 +24,7 @@ interface Result {
   watermark: BlockNumber | null;
 }
 
-const optionsMulti = {
+const MULTI_OPTS = {
   defaultValue: {
     headHex: null,
     leases: [],
@@ -42,7 +40,7 @@ const optionsMulti = {
   },
   transform: ([headData, optUp, optLifecycle, dmp, ump, hrmpE, hrmpI, optWm, optPending, optInfo, leases]: QueryResult): Result => ({
     headHex: headData.isSome
-      ? sliceHex(headData.unwrap())
+      ? headData.unwrap().toHex()
       : null,
     leases: leases
       .map((opt, index) => opt.isSome ? index : -1)
@@ -74,7 +72,7 @@ function useParaInfoImpl (id: ParaId): Result {
     [(api.query.parasInclusion || api.query.paraInclusion || api.query.inclusion)?.pendingAvailability, id],
     [api.query.registrar.paras, id],
     [api.query.slots.leases, id]
-  ], optionsMulti);
+  ], MULTI_OPTS);
 }
 
 export default createNamedHook('useParaInfo', useParaInfoImpl);

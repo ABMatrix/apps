@@ -1,17 +1,18 @@
-// Copyright 2017-2021 @polkadot/react-hooks authors & contributors
+// Copyright 2017-2023 @polkadot/react-hooks authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
+import type { ApiPromise } from '@polkadot/api';
 import type { BlockNumber, Votes } from '@polkadot/types/interfaces';
+import type { BN } from '@polkadot/util';
+import type { CollectiveType } from './types.js';
 
 import { useMemo } from 'react';
 
-import { ApiPromise } from '@polkadot/api';
 import { isFunction } from '@polkadot/util';
 
-import { createNamedHook } from './createNamedHook';
-import { useApi } from './useApi';
-import { useBestNumber } from './useBestNumber';
+import { createNamedHook } from './createNamedHook.js';
+import { useApi } from './useApi.js';
+import { useBestNumber } from './useBestNumber.js';
 
 interface State {
   hasFailed: boolean;
@@ -23,7 +24,7 @@ interface State {
 
 const DEFAULT_STATUS = { hasFailed: false, hasPassed: false, isCloseable: false, isVoteable: false, remainingBlocks: null };
 
-function getStatus (api: ApiPromise, bestNumber: BlockNumber, votes: Votes, numMembers: number, section: 'council' | 'membership' | 'technicalCommittee'): State {
+function getStatus (api: ApiPromise, bestNumber: BlockNumber, votes: Votes, numMembers: number, section: CollectiveType): State {
   const [instance] = api.registry.getModuleInstances(api.runtimeVersion.specName.toString(), section) || [section];
   const modLocation = isFunction(api.tx[instance as 'technicalCommittee']?.close)
     ? instance
@@ -40,7 +41,9 @@ function getStatus (api: ApiPromise, bestNumber: BlockNumber, votes: Votes, numM
   }
 
   const isEnd = bestNumber.gte(votes.end);
+  // let approved = yes_votes >= voting.threshold;
   const hasPassed = votes.threshold.lten(votes.ayes.length);
+  // let disapproved = seats.saturating_sub(no_votes) < voting.threshold;
   const hasFailed = votes.threshold.gtn(Math.abs(numMembers - votes.nays.length));
 
   return {
@@ -56,7 +59,7 @@ function getStatus (api: ApiPromise, bestNumber: BlockNumber, votes: Votes, numM
   };
 }
 
-function useVotingStatusImpl (votes: Votes | null | undefined, numMembers: number, section: 'council' | 'membership' | 'technicalCommittee'): State {
+function useVotingStatusImpl (votes: Votes | null | undefined, numMembers: number, section: CollectiveType): State {
   const { api } = useApi();
   const bestNumber = useBestNumber();
 

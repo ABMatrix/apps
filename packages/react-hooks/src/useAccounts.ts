@@ -1,47 +1,15 @@
-// Copyright 2017-2021 @polkadot/react-hooks authors & contributors
+// Copyright 2017-2023 @polkadot/react-hooks authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useState } from 'react';
+import type { Accounts } from './ctx/types.js';
 
-import { keyring } from '@polkadot/ui-keyring';
-import { u8aToHex } from '@polkadot/util';
-import { decodeAddress } from '@polkadot/util-crypto';
+import { useContext } from 'react';
 
-import { createNamedHook } from './createNamedHook';
-import { useIsMountedRef } from './useIsMountedRef';
+import { KeyringCtx } from './ctx/Keyring.js';
+import { createNamedHook } from './createNamedHook.js';
 
-export interface UseAccounts {
-  allAccounts: string[];
-  allAccountsHex: string[];
-  areAccountsLoaded: boolean
-  hasAccounts: boolean;
-  isAccount: (address?: string | null) => boolean;
-}
-
-const EMPTY: UseAccounts = { allAccounts: [], allAccountsHex: [], areAccountsLoaded: false, hasAccounts: false, isAccount: () => false };
-
-function useAccountsImpl (): UseAccounts {
-  const mountedRef = useIsMountedRef();
-  const [state, setState] = useState<UseAccounts>(EMPTY);
-
-  useEffect((): () => void => {
-    const subscription = keyring.accounts.subject.subscribe((accounts): void => {
-      if (mountedRef.current) {
-        const allAccounts = accounts ? Object.keys(accounts) : [];
-        const allAccountsHex = allAccounts.map((a) => u8aToHex(decodeAddress(a)));
-        const hasAccounts = allAccounts.length !== 0;
-        const isAccount = (address?: string | null) => !!address && allAccounts.includes(address);
-
-        setState({ allAccounts, allAccountsHex, areAccountsLoaded: true, hasAccounts, isAccount });
-      }
-    });
-
-    return (): void => {
-      setTimeout(() => subscription.unsubscribe(), 0);
-    };
-  }, [mountedRef]);
-
-  return state;
+function useAccountsImpl (): Accounts {
+  return useContext(KeyringCtx).accounts;
 }
 
 export const useAccounts = createNamedHook('useAccounts', useAccountsImpl);

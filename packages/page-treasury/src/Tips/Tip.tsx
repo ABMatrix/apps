@@ -1,21 +1,20 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { AccountId, Balance, BlockNumber, OpenTipTo225 } from '@polkadot/types/interfaces';
 import type { PalletTipsOpenTip } from '@polkadot/types/lookup';
+import type { BN } from '@polkadot/util';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import styled from 'styled-components';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { AddressMini, AddressSmall, Checkbox, Expander, Icon, LinkExternal, TxButton } from '@polkadot/react-components';
+import { AddressMini, AddressSmall, Checkbox, ExpanderScroll, Icon, LinkExternal, styled, TxButton } from '@polkadot/react-components';
 import { useAccounts, useApi } from '@polkadot/react-hooks';
 import { BlockToTime, FormatBalance } from '@polkadot/react-query';
 import { BN_ZERO, formatNumber } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
-import TipEndorse from './TipEndorse';
-import TipReason from './TipReason';
+import { useTranslation } from '../translate.js';
+import TipEndorse from './TipEndorse.js';
+import TipReason from './TipReason.js';
 
 interface Props {
   bestNumber?: BlockNumber;
@@ -94,6 +93,18 @@ function Tip ({ bestNumber, className = '', defaultId, hash, isMember, members, 
 
   const [isMedianSelected, setMedianTip] = useState(false);
 
+  const renderTippers = useCallback(
+    () => tip.tips.map(([tipper, balance]) => (
+      <AddressMini
+        balance={balance}
+        key={tipper.toString()}
+        value={tipper}
+        withBalance
+      />
+    )),
+    [tip]
+  );
+
   useEffect((): void => {
     onSelect(hash, isMedianSelected, median);
   }, [hash, isMedianSelected, median, onSelect]);
@@ -110,7 +121,7 @@ function Tip ({ bestNumber, className = '', defaultId, hash, isMember, members, 
   const recipient = who.toString();
 
   return (
-    <tr className={className}>
+    <StyledTr className={className}>
       <td className='address'>
         <AddressSmall value={who} />
       </td>
@@ -122,22 +133,15 @@ function Tip ({ bestNumber, className = '', defaultId, hash, isMember, members, 
       <TipReason hash={reason} />
       <td className='expand media--1100'>
         {tips.length !== 0 && (
-          <Expander summary={
-            <>
-              <div>{t<string>('Tippers ({{count}})', { replace: { count: tips.length } })}</div>
-              <FormatBalance value={median} />
-            </>
-          }
-          >
-            {tips.map(([tipper, balance]) => (
-              <AddressMini
-                balance={balance}
-                key={tipper.toString()}
-                value={tipper}
-                withBalance
-              />
-            ))}
-          </Expander>
+          <ExpanderScroll
+            renderChildren={renderTippers}
+            summary={
+              <>
+                <div>{t<string>('Tippers ({{count}})', { replace: { count: tips.length } })}</div>
+                <FormatBalance value={median} />
+              </>
+            }
+          />
         )}
       </td>
       <td className='button together'>
@@ -153,7 +157,7 @@ function Tip ({ bestNumber, className = '', defaultId, hash, isMember, members, 
               accountId={finder}
               className='media--1400'
               icon='times'
-              label={t('Cancel')}
+              label={t<string>('Cancel')}
               params={[hash]}
               tx={(api.tx.tips || api.tx.treasury).retractTip}
             />
@@ -200,17 +204,18 @@ function Tip ({ bestNumber, className = '', defaultId, hash, isMember, members, 
       <td className='links media--1700'>
         <LinkExternal
           data={hash}
-          isLogo
           type='tip'
         />
       </td>
-    </tr>
+    </StyledTr>
   );
 }
 
-export default React.memo(styled(Tip)`
+const StyledTr = styled.tr`
   .closingTimer {
     display: inline-block;
     padding: 0 0.5rem;
   }
-`);
+`;
+
+export default React.memo(Tip);

@@ -1,5 +1,8 @@
 {
   "bugs": "https://github.com/polkadot-js/apps/issues",
+  "engines": {
+    "node": ">=16"
+  },
   "homepage": "https://github.com/polkadot-js/apps/tree/master/packages/react-params#readme",
   "license": "Apache-2.0",
   "name": "@polkadot/react-params",
@@ -11,9 +14,14 @@
   },
   "sideEffects": false,
   "type": "module",
-  "version": "0.98.2-37",
+  "version": "0.132.2-18-x",
   "dependencies": {
-    "@babel/runtime": "^7.16.0",
-    "@polkadot/react-components": "^0.98.2-37"
+    "@polkadot/react-components": "^0.132.2-18-x",
+    "multiformats": "^11.0.2"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*",
+    "react-is": "*"
   }
 }

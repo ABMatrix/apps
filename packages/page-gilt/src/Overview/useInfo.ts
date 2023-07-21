@@ -1,9 +1,9 @@
-// Copyright 2017-2021 @polkadot/app-gilt authors & contributors
+// Copyright 2017-2023 @polkadot/app-gilt authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { u32 } from '@polkadot/types';
 import type { ActiveGiltsTotal, BalanceOf } from '@polkadot/types/interfaces';
-import type { GiltInfo, QueueTotal } from './types';
+import type { GiltInfo, QueueTotal } from './types.js';
 
 import { useMemo } from 'react';
 
@@ -14,7 +14,7 @@ interface State {
   info?: GiltInfo;
 }
 
-const optGiltInfo = {
+const OPT_GILT = {
   defaultValue: {} as GiltInfo,
   transform: ([activeTotal, queueTotals]: [ActiveGiltsTotal, [u32, BalanceOf][]]): GiltInfo => ({
     activeIndex: activeTotal.index.isZero()
@@ -32,7 +32,7 @@ function useInfoImpl (): State {
   const info = useCallMulti<GiltInfo>([
     api.query.gilt.activeTotal,
     api.query.gilt.queueTotals
-  ], optGiltInfo);
+  ], OPT_GILT);
 
   // useEffect((): void => {
   //   info.activeIndex &&

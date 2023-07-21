@@ -1,20 +1,19 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
 import type { Balance, BountyIndex } from '@polkadot/types/interfaces';
 
-import BN from 'bn.js';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { getTreasuryProposalThreshold } from '@polkadot/apps-config';
 import { Button, InputAddress, InputBalance, MarkError, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useCollectiveInstance, useCollectiveMembers, useToggle } from '@polkadot/react-hooks';
-import { BN_ZERO } from '@polkadot/util';
+import { BN } from '@polkadot/util';
 
-import { truncateTitle } from '../helpers';
-import { useBounties } from '../hooks';
-import { useTranslation } from '../translate';
+import { truncateTitle } from '../helpers/index.js';
+import { useBounties } from '../hooks/index.js';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   description: string
@@ -35,7 +34,7 @@ function ProposeCuratorAction ({ description, index, proposals, value }: Props):
   const [accountId, setAccountId] = useState<string | null>(null);
   const [curatorId, setCuratorId] = useState<string | null>(null);
   const [threshold, setThreshold] = useState<BN>();
-  const [fee, setFee] = useState<BN>(BN_ZERO);
+  const [fee, setFee] = useState<BN | null>();
   const [isFeeValid, setIsFeeValid] = useState(false);
 
   useEffect((): void => {
@@ -44,12 +43,20 @@ function ProposeCuratorAction ({ description, index, proposals, value }: Props):
     );
   }, [api, members]);
 
-  const proposeCuratorProposal = useMemo(() => curatorId && proposeCurator(index, curatorId, fee), [curatorId, fee, index, proposeCurator]);
+  const proposeCuratorProposal = useMemo(
+    () => curatorId && proposeCurator(index, curatorId, fee),
+    [curatorId, fee, index, proposeCurator]
+  );
 
-  const isVotingInitiated = useMemo(() => proposals?.filter(({ proposal }) => BOUNTY_METHODS.includes(proposal.method)).length !== 0, [proposals]);
+  const isVotingInitiated = useMemo(
+    () => proposals?.filter(({ proposal }) =>
+      proposal && BOUNTY_METHODS.includes(proposal.method)
+    ).length !== 0,
+    [proposals]
+  );
 
   useEffect(() => {
-    setIsFeeValid(!!value?.gt(fee));
+    setIsFeeValid(!!fee && !!value?.gt(fee));
   }, [value, fee]);
 
   return isMember && !isVotingInitiated && councilMod
@@ -72,7 +79,6 @@ function ProposeCuratorAction ({ description, index, proposals, value }: Props):
               <Modal.Columns hint={t<string>('The council member that will create the motion.')}>
                 <InputAddress
                   filter={members}
-                  help={t<string>('Select the council member account you wish to use to create a motion for the Bounty.')}
                   label={t<string>('proposing account')}
                   onChange={setAccountId}
                   type='account'
@@ -81,7 +87,6 @@ function ProposeCuratorAction ({ description, index, proposals, value }: Props):
               </Modal.Columns>
               <Modal.Columns hint={t<string>('Choose a curator whose background and expertise is such that they are capable of determining when the task is complete.')}>
                 <InputAddress
-                  help={t<string>('Select an account which (after a successful vote) will act as a curator.')}
                   label={t<string>('select curator')}
                   onChange={setCuratorId}
                   withLabel
@@ -89,7 +94,6 @@ function ProposeCuratorAction ({ description, index, proposals, value }: Props):
               </Modal.Columns>
               <Modal.Columns hint={t<string>('Part of the bounty value that will go to the Curator as a reward for their work')}>
                 <InputBalance
-                  help={t<string>('A reward for a curator, this amount is included in the total value of the bounty.')}
                   isError={!isFeeValid}
                   isZeroable
                   label={t<string>("curator's fee")}

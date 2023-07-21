@@ -1,41 +1,34 @@
-// Copyright 2017-2021 @polkadot/app-parachains authors & contributors
+// Copyright 2017-2023 @polkadot/app-parachains authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { BlockNumber, Header, ParaId, RuntimeVersion } from '@polkadot/types/interfaces';
+import type { ParaId } from '@polkadot/types/interfaces';
 
 import React from 'react';
-import styled from 'styled-components';
 
-import { useCall, useParaApi } from '@polkadot/react-hooks';
+import { styled } from '@polkadot/react-components';
 import { formatNumber } from '@polkadot/util';
+
+import useChainDetails from './useChainDetails.js';
 
 interface Props {
   className?: string;
   id: ParaId;
 }
 
-const transformHeader = {
-  transform: (header: Header) => header.number.unwrap()
-};
-
 function ParachainInfo ({ className, id }: Props): React.ReactElement<Props> {
-  const { api } = useParaApi(id);
-
-  // We are not using the derive here, we keep this queries to the point to not overload
-  const bestNumber = useCall<BlockNumber>(api?.rpc.chain.subscribeNewHeads, undefined, transformHeader);
-  const runtimeVersion = useCall<RuntimeVersion>(api?.rpc.state.subscribeRuntimeVersion);
+  const { bestNumber, runtimeVersion } = useChainDetails(id);
 
   return (
-    <div className={className}>
+    <StyledDiv className={className}>
       {bestNumber && <div>{formatNumber(bestNumber)}</div>}
       {runtimeVersion && <div className='version'><div className='media--1100'>{runtimeVersion.specName.toString()}</div><div className='media--1100'>/</div><div>{runtimeVersion.specVersion.toString()}</div></div>}
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(ParachainInfo)`
+const StyledDiv = styled.div`
   .version {
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
     white-space: nowrap;
 
     > div {
@@ -45,4 +38,6 @@ export default React.memo(styled(ParachainInfo)`
       text-overflow: ellipsis;
     }
   }
-`);
+`;
+
+export default React.memo(ParachainInfo);

@@ -1,9 +1,9 @@
-// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// Copyright 2017-2023 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { keyring } from '@polkadot/ui-keyring';
+import type { AccountIdIsh } from '../types.js';
 
-import { AccountIdIsh } from '../types';
+import { keyring } from '@polkadot/ui-keyring';
 
 export function getAccountCryptoType (accountId: AccountIdIsh): string {
   try {
@@ -21,7 +21,7 @@ export function getAccountCryptoType (accountId: AccountIdIsh): string {
               ? 'multisig'
               : current.meta.isProxied
                 ? 'proxied'
-                : 'external'
+                : 'qr'
             : current.type;
     }
   } catch {

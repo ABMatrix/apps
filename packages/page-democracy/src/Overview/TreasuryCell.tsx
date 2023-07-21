@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/app-democracy authors & contributors
+// Copyright 2017-2023 @polkadot/app-democracy authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Compact, Option } from '@polkadot/types';
@@ -12,7 +12,7 @@ import { useApi, useCall } from '@polkadot/react-hooks';
 import Params from '@polkadot/react-params';
 import { getTypeDef } from '@polkadot/types/create';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   className?: string;
@@ -36,7 +36,7 @@ interface ParamState {
 
 const DEFAULT_PARAMS: ParamState = { params: [], values: [] };
 
-const transformProposal = {
+const OPT_PROP = {
   transform: (optProp: Option<TreasuryProposal>) => optProp.unwrapOr(null)
 };
 
@@ -44,7 +44,7 @@ function TreasuryCell ({ className = '', value }: Props): React.ReactElement<Pro
   const { t } = useTranslation();
   const { api } = useApi();
   const [proposalId] = useState(() => value.unwrap());
-  const proposal = useCall<TreasuryProposal | null>(api.query.treasury.proposals, [proposalId], transformProposal);
+  const proposal = useCall<TreasuryProposal | null>(api.query.treasury.proposals, [proposalId], OPT_PROP);
   const [{ params, values }, setExtracted] = useState<ParamState>(DEFAULT_PARAMS);
 
   useEffect((): void => {

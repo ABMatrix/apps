@@ -1,16 +1,17 @@
-// Copyright 2017-2021 @polkadot/app-accounts authors & contributors
+// Copyright 2017-2023 @polkadot/app-accounts authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ApiPromise } from '@polkadot/api';
-import type { Ledger } from '@polkadot/ui-keyring';
+import type { Ledger } from '@polkadot/hw-ledger';
 
 import React, { useCallback, useRef, useState } from 'react';
 
 import { Button, Dropdown, Input, MarkError, Modal } from '@polkadot/react-components';
 import { useApi, useLedger } from '@polkadot/react-hooks';
 import { keyring } from '@polkadot/ui-keyring';
+import { arrayRange } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Option {
   text: string;
@@ -22,8 +23,7 @@ interface Props {
   onClose: () => void;
 }
 
-// new Array(20).fill(0).map((_, index) => index)
-export const AVAIL_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+export const AVAIL_INDEXES = arrayRange(20);
 
 // query the ledger for the address, adding it to the keyring
 async function queryLedger (api: ApiPromise, getLedger: () => Ledger, name: string, accountOffset: number, addressOffset: number): Promise<void> {
@@ -48,12 +48,12 @@ function LedgerModal ({ className, onClose }: Props): React.ReactElement<Props> 
   const [isBusy, setIsBusy] = useState(false);
 
   const accOps = useRef(AVAIL_INDEXES.map((value): Option => ({
-    text: t('Account type {{index}}', { replace: { index: value } }),
+    text: t<string>('Account type {{index}}', { replace: { index: value } }),
     value
   })));
 
   const addOps = useRef(AVAIL_INDEXES.map((value): Option => ({
-    text: t('Address index {{index}}', { replace: { index: value } }),
+    text: t<string>('Address index {{index}}', { replace: { index: value } }),
     value
   })));
 
@@ -91,7 +91,6 @@ function LedgerModal ({ className, onClose }: Props): React.ReactElement<Props> 
           <Input
             autoFocus
             className='full'
-            help={t<string>('Name given to this account to uniquely identity the account to yourself.')}
             isError={!isNameValid}
             label={t<string>('name')}
             onChange={_onChangeName}
@@ -99,19 +98,17 @@ function LedgerModal ({ className, onClose }: Props): React.ReactElement<Props> 
             value={name}
           />
         </Modal.Columns>
-        <Modal.Columns hint={t('The account type that you wish to create. This is the top-level derivation.')}>
+        <Modal.Columns hint={t<string>('The account type that you wish to create. This is the top-level derivation.')}>
           <Dropdown
-            help={t('The account type (derivation) to use')}
-            label={t('account type')}
+            label={t<string>('account type')}
             onChange={setAccIndex}
             options={accOps.current}
             value={accIndex}
           />
         </Modal.Columns>
-        <Modal.Columns hint={t('The address index on the account that you wish to add. This is the second-level derivation.')}>
+        <Modal.Columns hint={t<string>('The address index on the account that you wish to add. This is the second-level derivation.')}>
           <Dropdown
-            help={t('The address index (derivation on account) to use')}
-            label={t('address index')}
+            label={t<string>('address index')}
             onChange={setAddIndex}
             options={addOps.current}
             value={addIndex}

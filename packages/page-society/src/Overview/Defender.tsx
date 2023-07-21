@@ -1,18 +1,18 @@
-// Copyright 2017-2021 @polkadot/app-society authors & contributors
+// Copyright 2017-2023 @polkadot/app-society authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DeriveSociety, DeriveSocietyMember } from '@polkadot/api-derive/types';
 import type { SocietyVote } from '@polkadot/types/interfaces';
-import type { VoteType } from '../types';
+import type { VoteType } from '../types.js';
 
 import React, { useRef } from 'react';
 
 import { AddressSmall, Table } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../translate';
-import DefenderVoting from './DefenderVoting';
-import Votes from './Votes';
+import { useTranslation } from '../translate.js';
+import DefenderVoting from './DefenderVoting.js';
+import Votes from './Votes.js';
 
 interface Props {
   className?: string;
@@ -21,7 +21,7 @@ interface Props {
   ownMembers: string[];
 }
 
-const transformVotes = {
+const OPT_VOTES = {
   transform: (members: DeriveSocietyMember[]): VoteType[] =>
     members
       .filter(({ vote }): boolean => !!vote)
@@ -31,10 +31,10 @@ const transformVotes = {
 function Defender ({ className = '', info, isMember, ownMembers }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
-  const votes = useCall<VoteType[]>(api.derive.society.members, undefined, transformVotes);
+  const votes = useCall<VoteType[]>(api.derive.society.members, undefined, OPT_VOTES);
 
-  const headerRef = useRef([
-    [t('defender'), 'start'],
+  const headerRef = useRef<[React.ReactNode?, string?, number?][]>([
+    [t<string>('defender'), 'start'],
     [undefined, 'expand'],
     []
   ]);

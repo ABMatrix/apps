@@ -1,149 +1,201 @@
-// Copyright 2017-2021 @polkadot/apps-config authors & contributors
+// Copyright 2017-2023 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { TFunction } from 'i18next';
-import type { EndpointOption } from './types';
+import type { EndpointOption } from './types.js';
 
-import { WESTEND_GENESIS } from '../api/constants';
-
-/* eslint-disable sort-keys */
+import { WESTEND_GENESIS } from '../api/constants.js';
+import { chainsKaruraSVG, chainsStandardPNG } from '../ui/logos/chains/index.js';
+import { nodesAssetHubSVG, nodesBridgeHubSVG, nodesCentrifugePNG, nodesIntegriteeSVG, nodesInterlaySVG, nodesKhalaSVG, nodesKiltPNG, nodesKylinPNG, nodesMoonshadowPNG, nodesWestendColourSVG } from '../ui/logos/nodes/index.js';
+import { getTeleports } from './util.js';
 
 // The available endpoints that will show in the dropdown. For the most part (with the exception of
 // Polkadot) we try to keep this to live chains only, with RPCs hosted by the community/chain vendor
 //   info: The chain logo name as defined in ../ui/logos/index.ts in namedLogos (this also needs to align with @polkadot/networks)
 //   text: The text to display on the dropdown
-//   value: The actual hosted secure websocket endpoint
-
-// Based on history, this will expand so keep it as a singular chunk
-export function createWestend (t: TFunction): EndpointOption {
-  return {
-    dnslink: 'westend',
-    genesisHash: WESTEND_GENESIS,
-    info: 'westend',
-    text: t('rpc.westend', 'Westend', { ns: 'apps-config' }),
+//   providers: The actual hosted secure websocket endpoint
+//
+// IMPORTANT: Alphabetical based on text
+export const testParasWestend: Omit<EndpointOption, 'teleport'>[] = [
+  {
+    info: 'charcoal',
+    paraId: 2086,
     providers: {
-      Parity: 'wss://westend-rpc.polkadot.io',
-      // 'Patract Elara': 'wss://pub.elara.patract.io/westend', // No balances showing on Westend, runtime 9110
-      OnFinality: 'wss://westend.api.onfinality.io/public-ws',
-      Pinknode: 'wss://rpc.pinknode.io/westend/explorer',
-      'light client': 'light://substrate-connect/westend'
-      // 'NodeFactory(Vedran)': 'wss://westend.vedran.nodefactory.io/ws', // https://github.com/polkadot-js/apps/issues/5580
+      // Centrifuge: 'wss://fullnode-collator.charcoal.centrifuge.io' // https://github.com/polkadot-js/apps/issues/8219
     },
-    teleport: [1000],
-    linked: [
-      // (1) system parachains (none available yet)
-      // ...
-      // (2) common good, leave as second group
-      {
-        info: 'westmint',
-        paraId: 1000,
-        text: t('rpc.westend.shell', 'Westmint', { ns: 'apps-config' }),
-        providers: {
-          Parity: 'wss://westmint-rpc.polkadot.io',
-          'Patract Elara': 'wss://pub.elara.patract.io/westmint'
-        },
-        teleport: [-1]
-      },
-      // (3) parachains with id, see Rococo (info here maps to the actual "named icon")
-      //
-      // NOTE: Added alphabetical based on chain name
-      {
-        info: 'basilisk',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/6422
-        paraId: 2097,
-        text: t('rpc.westend.basilisk', 'Basilisk Egg', { ns: 'apps-config' }),
-        providers: {
-          HydraDX: 'wss://rpc-01.basilisk-testnet.hydradx.io'
-        }
-      },
-      {
-        info: 'charcoal',
-        paraId: 2086,
-        text: t('rpc.westend.charcoal', 'Charcoal', { ns: 'apps-config' }),
-        providers: {
-          Centrifuge: 'wss://fullnode-collator.charcoal.centrifuge.io'
-        }
-      },
-      {
-        info: 'integritee',
-        paraId: 2081,
-        text: t('rpc.westend.integritee', 'Integritee Network', { ns: 'apps-config' }),
-        providers: {
-          Integritee: 'wss://teerw1.integritee.network'
-        }
-      },
-      {
-        info: 'interBTC',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/6261
-        paraId: 2094,
-        text: t('rpc.westend.interbtc', 'InterBTC', { ns: 'apps-config' }),
-        providers: {
-          Interlay: 'wss://api-westend.interlay.io/parachain'
-        }
-      },
-      {
-        info: 'moonshadow',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/6181
-        paraId: 2002,
-        text: t('rpc.westend.moonshadow', 'Moonshadow', { ns: 'apps-config' }),
-        providers: {
-          PureStake: 'wss://wss.moonshadow.testnet.moonbeam.network'
-        }
-      },
-      {
-        info: 'opal',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/6456
-        homepage: 'https://unique.network/',
-        paraId: 2096,
-        text: t('westend-opal.unique.network', 'OPAL by UNIQUE', { ns: 'apps-config' }),
-        providers: {
-          Unique: 'wss://westend-opal.unique.network'
-        }
-      },
-      {
-        info: 'westendPichiu',
-        homepage: 'https://kylin.network/',
-        paraId: 2104,
-        text: t('westend.kylin-node.co.uk', 'Pichiu', { ns: 'apps-config' }),
-        providers: {
-          'Kylin Network': 'wss://westend.kylin-node.co.uk'
-        }
-      },
-      {
-        info: 'westendStandard',
-        paraId: 2094,
-        text: t('rpc.westend.standard', 'Standard ', { ns: 'apps-config' }),
-        providers: {
-          'Standard Protocol': 'wss://rpc.westend.standard.tech'
-        }
-      },
-      {
-        info: 'karura',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/5830
-        paraId: 2005,
-        text: t('rpc.westend.wendala', 'Wendala', { ns: 'apps-config' }),
-        providers: {
-          'Acala Foundation': 'wss://karura-westend-rpc.aca-staging.network'
-        }
-      },
-      {
-        info: 'whala',
-        isUnreachable: true, // https://github.com/polkadot-js/apps/issues/6181
-        paraId: 2013,
-        text: t('rpc.westend.whala', 'Whala', { ns: 'apps-config' }),
-        providers: {
-          Phala: 'wss://whala.phala.network/ws'
-        }
-      },
-      {
-        info: 'kilt',
-        homepage: 'https://www.kilt.io/',
-        paraId: 2085,
-        text: t('rpc.westend.kilt', 'WILT', { ns: 'apps-config' }),
-        providers: {
-          'KILT Protocol': 'wss://westend.kilt.io:9977'
-        }
-      }
-    ]
-  };
-}
+    text: 'Charcoal',
+    ui: {
+      logo: nodesCentrifugePNG
+    }
+  },
+  {
+    info: 'integritee',
+    paraId: 2081,
+    providers: {
+      // Integritee: 'wss://teerw1.integritee.network' // https://github.com/polkadot-js/apps/issues/8937
+    },
+    text: 'Integritee Network',
+    ui: {
+      color: '#658ea9',
+      logo: nodesIntegriteeSVG
+    }
+  },
+  {
+    info: 'interlay',
+    paraId: 2094,
+    providers: {
+      // Interlay: 'wss://api-westend.interlay.io/parachain' // https://github.com/polkadot-js/apps/issues/6261
+    },
+    text: 'Interlay',
+    ui: {
+      logo: nodesInterlaySVG
+    }
+  },
+  {
+    info: 'moonshadow',
+    paraId: 2002,
+    providers: {
+      // PureStake: 'wss://wss.moonshadow.testnet.moonbeam.network' // https://github.com/polkadot-js/apps/issues/6181
+    },
+    text: 'Moonshadow',
+    ui: {
+      color: '#53cbc9',
+      logo: nodesMoonshadowPNG
+    }
+  },
+  {
+    homepage: 'https://kylin.network/',
+    info: 'westendPichiu',
+    paraId: 2112,
+    providers: {
+      // 'Kylin Network': 'wss://westend.kylin-node.co.uk' // https://github.com/polkadot-js/apps/issues/8710
+    },
+    text: 'Pichiu',
+    ui: {
+      logo: nodesKylinPNG
+    }
+  },
+  {
+    info: 'westendStandard',
+    paraId: 2094,
+    providers: {
+      // 'Standard Protocol': 'wss://rpc.westend.standard.tech' // https://github.com/polkadot-js/apps/issues/8525
+    },
+    text: 'Standard',
+    ui: {
+      logo: chainsStandardPNG
+    }
+  },
+  {
+    info: 'karura',
+    paraId: 2005,
+    providers: {
+      // 'Acala Foundation': 'wss://karura-westend-rpc.aca-staging.network' // https://github.com/polkadot-js/apps/issues/5830
+    },
+    text: 'Wendala',
+    ui: {
+      logo: chainsKaruraSVG
+    }
+  },
+  {
+    info: 'whala',
+    paraId: 2013,
+    providers: {
+      // Phala: 'wss://whala.phala.network/ws' // https://github.com/polkadot-js/apps/issues/6181
+    },
+    text: 'Whala',
+    ui: {
+      color: '#03f3f3',
+      logo: nodesKhalaSVG
+    }
+  },
+  {
+    homepage: 'https://www.kilt.io/',
+    info: 'kilt',
+    paraId: 2085,
+    providers: {
+      // 'KILT Protocol': 'wss://westend.kilt.io:9977' // https://github.com/polkadot-js/apps/issues/9059
+    },
+    text: 'WILT',
+    ui: {
+      color: '#8c145a',
+      logo: nodesKiltPNG
+    }
+  }
+];
+
+export const testParasWestendCommon: EndpointOption[] = [
+  {
+    info: 'WestendAssetHub',
+    paraId: 1000,
+    providers: {
+      Dwellir: 'wss://westmint-rpc.dwellir.com',
+      'Dwellir Tunisia': 'wss://westmint-rpc-tn.dwellir.com',
+      'IBP-GeoDNS1': 'wss://sys.ibp.network/westmint',
+      'IBP-GeoDNS2': 'wss://sys.dotters.network/westmint',
+      Parity: 'wss://westend-asset-hub-rpc.polkadot.io',
+      Stakeworld: 'wss://wnd-rpc.stakeworld.io/assethub'
+    },
+    teleport: [-1],
+    text: 'AssetHub',
+    ui: {
+      color: '#77bb77',
+      logo: nodesAssetHubSVG
+    }
+  },
+  {
+    info: 'westendBridgeHub',
+    paraId: 1002,
+    providers: {
+      // Parity: 'wss://westend-bridge-hub-rpc.polkadot.io' // https://github.com/polkadot-js/apps/issues/9348
+    },
+    text: 'BridgeHub',
+    ui: {
+      logo: nodesBridgeHubSVG
+    }
+  },
+  {
+    info: 'westendCollectives',
+    paraId: 1001,
+    providers: {
+      'IBP-GeoDNS1': 'wss://sys.ibp.network/collectives-westend',
+      'IBP-GeoDNS2': 'wss://sys.dotters.network/collectives-westend'
+      // Parity: 'wss://westend-collectives-rpc.polkadot.io' // https://github.com/polkadot-js/apps/issues/9357
+    },
+    teleport: [-1],
+    text: 'Collectives',
+    ui: {
+      color: '#e6777a',
+      logo: 'fa;people-group'
+    }
+  }
+];
+
+export const testRelayWestend: EndpointOption = {
+  dnslink: 'westend',
+  genesisHash: WESTEND_GENESIS,
+  info: 'westend',
+  linked: [
+    ...testParasWestendCommon,
+    ...testParasWestend
+  ],
+  providers: {
+    // BlockOps: 'wss://westend-rpc.blockops.network/ws', // https://github.com/polkadot-js/apps/issues/9614
+    Dwellir: 'wss://westend-rpc.dwellir.com',
+    'Dwellir Tunisia': 'wss://westend-rpc-tn.dwellir.com',
+    'IBP-GeoDNS1': 'wss://rpc.ibp.network/westend',
+    'IBP-GeoDNS2': 'wss://rpc.dotters.network/westend',
+    LuckyFriday: 'wss://rpc-westend.luckyfriday.io',
+    OnFinality: 'wss://westend.api.onfinality.io/public-ws',
+    Parity: 'wss://westend-rpc.polkadot.io',
+    RadiumBlock: 'wss://westend.public.curie.radiumblock.co/ws',
+    Stakeworld: 'wss://wnd-rpc.stakeworld.io',
+    'light client': 'light://substrate-connect/westend'
+  },
+  teleport: getTeleports(testParasWestendCommon),
+  text: 'Westend',
+  ui: {
+    color: '#da68a7',
+    identityIcon: 'polkadot',
+    logo: nodesWestendColourSVG
+  }
+};

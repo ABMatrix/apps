@@ -1,24 +1,23 @@
-// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// Copyright 2017-2023 @polkadot/app-staking authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DeriveSessionProgress } from '@polkadot/api-derive/types';
-import type { SlashEra } from './types';
+import type { SlashEra } from './types.js';
 
-import BN from 'bn.js';
 import React, { useMemo } from 'react';
 
 import { CardSummary, SummaryBox } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 import { FormatBalance } from '@polkadot/react-query';
-import { BN_ONE, formatNumber } from '@polkadot/util';
+import { BN, BN_ONE, formatNumber } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   slash: SlashEra;
 }
 
-function Header ({ slash: { era, nominators, reporters, total, validators } }: Props): React.ReactElement<Props> | null {
+function Summary ({ slash: { era, nominators, reporters, total, validators } }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
   const sessionInfo = useCall<DeriveSessionProgress>(api.derive.session?.progress);
@@ -63,4 +62,4 @@ function Header ({ slash: { era, nominators, reporters, total, validators } }: P
   );
 }
 
-export default React.memo(Header);
+export default React.memo(Summary);

@@ -1,24 +1,27 @@
-// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// Copyright 2017-2023 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import ReactMd from 'react-markdown';
-import styled from 'styled-components';
+import rehypeRaw from 'rehype-raw';
 
 import { useToggle } from '@polkadot/react-hooks';
 
-import Icon from './Icon';
+import Icon from './Icon.js';
+import { styled } from './styled.js';
 
 interface Props {
   className?: string;
   md: string;
 }
 
+const rehypePlugins = [rehypeRaw];
+
 function HelpOverlay ({ className = '', md }: Props): React.ReactElement<Props> {
   const [isVisible, toggleVisible] = useToggle();
 
   return (
-    <div className={`ui--HelpOverlay ${className}`}>
+    <StyledDiv className={`${className} ui--HelpOverlay`}>
       <div className='help-button'>
         <Icon
           icon='question-circle'
@@ -34,15 +37,16 @@ function HelpOverlay ({ className = '', md }: Props): React.ReactElement<Props> 
         </div>
         <ReactMd
           className='help-content'
-          escapeHtml={false}
-          source={md}
-        />
+          rehypePlugins={rehypePlugins}
+        >
+          {md}
+        </ReactMd>
       </div>
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(HelpOverlay)`
+const StyledDiv = styled.div`
   .help-button {
     color: var(--color-text);
     cursor: pointer;
@@ -82,4 +86,6 @@ export default React.memo(styled(HelpOverlay)`
       right: 0;
     }
   }
-`);
+`;
+
+export default React.memo(HelpOverlay);

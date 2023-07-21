@@ -1,31 +1,38 @@
-// Copyright 2017-2021 @polkadot/app-extrinsics authors & contributors
+// Copyright 2017-2023 @polkadot/app-extrinsics authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AppProps as Props } from '@polkadot/react-components/types';
+import type { TFunction } from 'i18next';
+import type { AppProps as Props, TabItem } from '@polkadot/react-components/types';
+import type { DecodedExtrinsic } from './types.js';
 
-import React, { useRef } from 'react';
-import { Route, Switch } from 'react-router';
+import React, { useRef, useState } from 'react';
+import { Route, Routes } from 'react-router';
 
 import { Tabs } from '@polkadot/react-components';
 
-import Decoder from './Decoder';
-import Submission from './Submission';
-import { useTranslation } from './translate';
+import Decoder from './Decoder.js';
+import Submission from './Submission.js';
+import { useTranslation } from './translate.js';
 
-function ExtrinsicsApp ({ basePath }: Props): React.ReactElement<Props> {
-  const { t } = useTranslation();
-
-  const itemsRef = useRef([
+function createItemsRef (t: TFunction): TabItem[] {
+  return [
     {
       isRoot: true,
       name: 'create',
       text: t<string>('Submission')
     },
     {
+      hasParams: true,
       name: 'decode',
       text: t<string>('Decode')
     }
-  ]);
+  ];
+}
+
+function ExtrinsicsApp ({ basePath }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
+  const [decoded, setDecoded] = useState<DecodedExtrinsic | null>(null);
+  const itemsRef = useRef(createItemsRef(t));
 
   return (
     <main className='extrinsics--App'>
@@ -33,12 +40,25 @@ function ExtrinsicsApp ({ basePath }: Props): React.ReactElement<Props> {
         basePath={basePath}
         items={itemsRef.current}
       />
-      <Switch>
-        <Route path={`${basePath}/decode`}><Decoder /></Route>
-        <Route>
-          <Submission />
+      <Routes>
+        <Route path={basePath}>
+          <Route
+            element={
+              <Decoder
+                defaultValue={decoded && decoded.hex}
+                setLast={setDecoded}
+              />
+            }
+            path='decode/:encoded?'
+          />
+          <Route
+            element={
+              <Submission defaultValue={decoded} />
+            }
+            index
+          />
         </Route>
-      </Switch>
+      </Routes>
     </main>
   );
 }

@@ -1,20 +1,19 @@
-// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// Copyright 2017-2023 @polkadot/app-staking authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveBalancesAll, DeriveStakingAccount } from '@polkadot/api-derive/types';
-import type { AmountValidateState } from '../types';
+import type { AmountValidateState } from '../types.js';
 
-import BN from 'bn.js';
 import React, { useMemo, useState } from 'react';
 
-import { ApiPromise } from '@polkadot/api';
 import { InputAddress, InputBalance, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 import { BalanceFree } from '@polkadot/react-query';
-import { BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
-import { useTranslation } from '../../translate';
-import ValidateAmount from './InputValidateAmount';
+import { useTranslation } from '../../translate.js';
+import ValidateAmount from './InputValidateAmount.js';
 
 interface Props {
   controllerId: string | null;
@@ -72,9 +71,8 @@ function BondExtra ({ controllerId, onClose, stakingInfo, stashId }: Props): Rea
             <InputBalance
               autoFocus
               defaultValue={startBalance}
-              help={t<string>('Amount to add to the currently bonded funds. This is adjusted using the available funds on the account.')}
-              isError={!!amountError?.error || !maxAdditional || maxAdditional.eqn(0)}
-              label={t<string>('additional bonded funds')}
+              isError={!!amountError?.error || !maxAdditional || maxAdditional.isZero()}
+              label={t<string>('additional funds to bond')}
               labelExtra={
                 <BalanceFree
                   label={<span className='label'>{t<string>('balance')}</span>}

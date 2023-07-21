@@ -1,26 +1,26 @@
-// Copyright 2017-2021 @polkadot/app-parachains authors & contributors
+// Copyright 2017-2023 @polkadot/app-parachains authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { ParaId } from '@polkadot/types/interfaces';
-import type { OwnedId } from '../types';
+import type { BN } from '@polkadot/util';
+import type { OwnedId } from '../types.js';
 
 import React from 'react';
 
 import { Button } from '@polkadot/react-components';
 import { useApi, useCall, useToggle } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../translate';
-import { LOWEST_PUBLIC_ID } from './constants';
-import RegisterId from './RegisterId';
-import RegisterThread from './RegisterThread';
+import { useTranslation } from '../translate.js';
+import { LOWEST_PUBLIC_ID } from './constants.js';
+import RegisterId from './RegisterId.js';
+import RegisterThread from './RegisterThread.js';
 
 interface Props {
   className?: string;
   ownedIds: OwnedId[];
 }
 
-const transformId = {
+const OPT_NEXT = {
   transform: (nextId: ParaId) =>
     nextId.isZero()
       ? LOWEST_PUBLIC_ID
@@ -32,7 +32,7 @@ function Actions ({ className, ownedIds }: Props): React.ReactElement<Props> {
   const { api } = useApi();
   const [isRegisterOpen, toggleRegisterOpen] = useToggle();
   const [isReserveOpen, toggleReserveOpen] = useToggle();
-  const nextParaId = useCall<ParaId | BN>(api.query.registrar.nextFreeParaId, [], transformId);
+  const nextParaId = useCall<ParaId | BN>(api.query.registrar.nextFreeParaId, [], OPT_NEXT);
 
   return (
     <Button.Group className={className}>

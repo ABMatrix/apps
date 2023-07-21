@@ -1,14 +1,14 @@
-// Copyright 2017-2021 @polkadot/app-staking authors & contributors
+// Copyright 2017-2023 @polkadot/app-staking authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
+import type { BN } from '@polkadot/util';
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useMemo } from 'react';
 
 import { useParaEndpoints } from '@polkadot/react-hooks';
 
-import ChainImg from './ChainImg';
+import ChainImg from './ChainImg.js';
+import { styled } from './styled.js';
 
 interface Props {
   className?: string;
@@ -17,29 +17,40 @@ interface Props {
 
 function ParaLink ({ className, id }: Props): React.ReactElement<Props> | null {
   const endpoints = useParaEndpoints(id);
+  const links = useMemo(
+    () => endpoints.filter(({ isDisabled, isUnreachable }) => !isDisabled && !isUnreachable),
+    [endpoints]
+  );
 
   if (!endpoints.length) {
     return null;
   }
 
-  const { info, text, value } = endpoints[endpoints.length - 1];
+  const { text, ui, value } = links.length
+    ? links[links.length - 1]
+    : endpoints[0];
 
   return (
-    <div className={className}>
+    <StyledDiv className={className}>
       <ChainImg
         isInline
-        logo={info || 'empty'}
+        logo={ui.logo || 'empty'}
         withoutHl
       />
-      <a
-        className='chainAlign'
-        href={`${window.location.origin}${window.location.pathname}?rpc=${encodeURIComponent(value)}`}
-      >{text}</a>
-    </div>
+      {links.length
+        ? (
+          <a
+            className='chainAlign'
+            href={`${window.location.origin}${window.location.pathname}?rpc=${encodeURIComponent(value)}`}
+          >{text}</a>
+        )
+        : text
+      }
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(ParaLink)`
+const StyledDiv = styled.div`
   vertical-align: middle;
   white-space: nowrap;
 
@@ -52,4 +63,6 @@ export default React.memo(styled(ParaLink)`
     text-overflow: ellipsis;
     vertical-align: middle;
   }
-`);
+`;
+
+export default React.memo(ParaLink);

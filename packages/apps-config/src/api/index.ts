@@ -1,20 +1,10 @@
-// Copyright 2017-2021 @polkadot/apps-config authors & contributors
+// Copyright 2017-2023 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { OverrideBundleType } from '@polkadot/types/types';
+import { applyDerives } from './derives.js';
+import { typesBundle as typesOnlyBundle } from './typesBundle.js';
 
-import typesChain from './chain';
-import spec from './spec';
+export * from './constants.js';
+export * from './params/index.js';
 
-export * from './constants';
-export * from './params';
-
-export function getChainTypes (_specName: string, chainName: string): Record<string, string | Record<string, unknown>> {
-  return {
-    ...(typesChain[chainName as keyof typeof typesChain] || {})
-  };
-}
-
-export const typesBundle: OverrideBundleType = { spec };
-
-export { typesChain };
+export const typesBundle = /*#__PURE__*/ applyDerives(typesOnlyBundle);

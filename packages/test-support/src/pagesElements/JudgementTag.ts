@@ -1,5 +1,7 @@
-// Copyright 2017-2021 @polkadot/test-supports authors & contributors
+// Copyright 2017-2023 @polkadot/test-supports authors & contributors
 // SPDX-License-Identifier: Apache-2.0
+
+/* global fail */
 
 import { fireEvent, screen, within } from '@testing-library/react';
 

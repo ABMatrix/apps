@@ -1,17 +1,17 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { SubmittableExtrinsic } from '@polkadot/api/types';
+import type { BN } from '@polkadot/util';
 
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { Button, TxButton } from '@polkadot/react-components';
 import { useAccounts, useApi, useTxBatch } from '@polkadot/react-hooks';
 
-import { useTranslation } from '../translate';
-import TipCreate from './TipCreate';
-import Tips from './Tips';
+import { useTranslation } from '../translate.js';
+import TipCreate from './TipCreate.js';
+import Tips from './Tips.js';
 
 interface Props {
   className?: string;

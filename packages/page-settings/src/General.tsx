@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/app-settings authors & contributors
+// Copyright 2017-2023 @polkadot/app-settings authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Option } from '@polkadot/apps-config/settings/types';
@@ -9,12 +9,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLanguages, createSs58 } from '@polkadot/apps-config';
 import { allNetworks } from '@polkadot/networks';
 import { Button, Dropdown, MarkWarning } from '@polkadot/react-components';
-import { useApi, useLedger } from '@polkadot/react-hooks';
+import { useApi, useIpfs, useLedger } from '@polkadot/react-hooks';
 import { settings } from '@polkadot/ui-settings';
-import { isUndefined } from '@polkadot/util';
 
-import { useTranslation } from './translate';
-import { createIdenticon, createOption, save, saveAndReload } from './util';
+import { useTranslation } from './translate.js';
+import { createIdenticon, createOption, save, saveAndReload } from './util.js';
 
 interface Props {
   className?: string;
@@ -24,8 +23,9 @@ const _ledgerConnOptions = settings.availableLedgerConn;
 
 function General ({ className = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { api, isApiReady, isElectron } = useApi();
-  const { isLedgerCapable } = useLedger();
+  const { chainSS58, isApiReady, isElectron } = useApi();
+  const { isIpfs } = useIpfs();
+  const { hasLedgerChain, hasWebUsb } = useLedger();
   // tri-state: null = nothing changed, false = no reload, true = reload required
   const [changed, setChanged] = useState<boolean | null>(null);
   const [state, setSettings] = useState((): SettingsStruct => {
@@ -48,33 +48,34 @@ function General ({ className = '' }: Props): React.ReactElement<Props> {
 
   const prefixOptions = useMemo(
     (): (Option | React.ReactNode)[] => {
-      let ss58Format = api.registry.chainSS58;
-
-      if (isUndefined(ss58Format)) {
-        ss58Format = 42;
-      }
-
-      const network = allNetworks.find(({ prefix }) => prefix === ss58Format);
+      const network = allNetworks.find(({ prefix }) => prefix === chainSS58);
 
       return createSs58(t).map((o) =>
-        createOption(o, ['default'], 'empty', (
-          o.value === -1
-            ? isApiReady
-              ? network
-                ? ` (${network.displayName}, ${ss58Format || 0})`
-                : ` (${ss58Format || 0})`
-              : undefined
-            : ` (${o.value})`
+        createOption(o, ['default'], 'empty', (o.value === -1
+          ? isApiReady
+            ? network
+              ? ` (${network.displayName}, ${chainSS58 || 0})`
+              : ` (${chainSS58 || 0})`
+            : undefined
+          : ` (${o.value})`
         ))
       );
     },
-    [api, isApiReady, t]
+    [chainSS58, isApiReady, t]
+  );
+
+  const storageOptions = useMemo(
+    () => [
+      { text: t<string>('Allow local in-browser account storage'), value: 'on' },
+      { text: t<string>('Do not allow local in-browser account storage'), value: 'off' }
+    ],
+    [t]
   );
 
   const themeOptions = useMemo(
     () => [
-      { text: t('Light theme (default)'), value: 'light' },
-      { text: t('Dark theme (experimental, work-in-progress)'), value: 'dark' }
+      { text: t<string>('Light theme'), value: 'light' },
+      { text: t<string>('Dark theme'), value: 'dark' }
     ],
     [t]
   );
@@ -115,23 +116,12 @@ function General ({ className = '' }: Props): React.ReactElement<Props> {
     [state]
   );
 
-  const { i18nLang, icon, ledgerConn, prefix, uiTheme } = state;
-
   return (
     <div className={className}>
+      <h1>{t<string>('UI options')}</h1>
       <div className='ui--row'>
         <Dropdown
-          defaultValue={prefix}
-          help={t<string>('Override the default ss58 prefix for address generation')}
-          label={t<string>('address prefix')}
-          onChange={_handleChange('prefix')}
-          options={prefixOptions}
-        />
-      </div>
-      <div className='ui--row'>
-        <Dropdown
-          defaultValue={icon}
-          help={t<string>('Override the default identity icon display with a specific theme')}
+          defaultValue={state.icon}
           label={t<string>('default icon theme')}
           onChange={_handleChange('icon')}
           options={iconOptions}
@@ -139,7 +129,7 @@ function General ({ className = '' }: Props): React.ReactElement<Props> {
       </div>
       <div className='ui--row'>
         <Dropdown
-          defaultValue={uiTheme}
+          defaultValue={state.uiTheme}
           label={t<string>('default interface theme')}
           onChange={_handleChange('uiTheme')}
           options={themeOptions}
@@ -147,28 +137,67 @@ function General ({ className = '' }: Props): React.ReactElement<Props> {
       </div>
       <div className='ui--row'>
         <Dropdown
-          defaultValue={i18nLang}
+          defaultValue={state.i18nLang}
           label={t<string>('default interface language')}
           onChange={_handleChange('i18nLang')}
           options={translateLanguages}
         />
       </div>
-      {isLedgerCapable && (
+      <h1>{t<string>('account options')}</h1>
+      <div className='ui--row'>
+        <Dropdown
+          defaultValue={state.prefix}
+          label={t<string>('address prefix')}
+          onChange={_handleChange('prefix')}
+          options={prefixOptions}
+        />
+      </div>
+      {!isIpfs && !isElectron && (
         <>
           <div className='ui--row'>
             <Dropdown
-              defaultValue={ledgerConn}
-              help={t<string>('Manage your connection to Ledger S')}
+              defaultValue={state.storage}
+              label={t<string>('in-browser account creation')}
+              onChange={_handleChange('storage')}
+              options={storageOptions}
+            />
+          </div>
+          {state.storage === 'on' && (
+            <div className='ui--row'>
+              <MarkWarning content={t<string>('It is recommended that you store all keys externally to the in-page browser local storage, either on browser extensions, signers operating via QR codes or hardware devices. This option is provided for advanced users with strong backup policies.')} />
+            </div>
+          )}
+        </>
+      )}
+      {hasLedgerChain && (
+        <>
+          <div className='ui--row'>
+            <Dropdown
+              defaultValue={
+                hasWebUsb
+                  ? state.ledgerConn
+                  : ledgerConnOptions[0].value
+              }
+              isDisabled={!hasWebUsb}
               label={t<string>('manage hardware connections')}
               onChange={_handleChange('ledgerConn')}
               options={ledgerConnOptions}
             />
           </div>
-          {state.ledgerConn !== 'none' && (
-            <div className='ui--row'>
-              <MarkWarning content={t<string>('Ledger support is still experimental and some issues may remain. Trust, but verify the addresses on your devices before transferring large amounts. There are some features that will not work, including batch calls (used extensively in staking and democracy) as well as any identity operations.')} />
-            </div>
-          )}
+          {hasWebUsb
+            ? state.ledgerConn !== 'none'
+              ? (
+                <div className='ui--row'>
+                  <MarkWarning content={t<string>('Ledger support is still experimental and some issues may remain. Trust, but verify the addresses on your devices before transferring large amounts. There are some features that will not work, including batch calls (used extensively in staking and democracy) as well as any identity operations.')} />
+                </div>
+              )
+              : null
+            : (
+              <div className='ui--row'>
+                <MarkWarning content={t<string>('Ledger hardware device support is only available on Chromium-based browsers where WebUSB and WebHID support is available in the browser.')} />
+              </div>
+            )
+          }
         </>
       )}
       <Button.Group>

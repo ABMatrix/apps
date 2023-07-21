@@ -1,23 +1,23 @@
-// Copyright 2017-2021 @polkadot/react-components authors & contributors
+// Copyright 2017-2023 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { SubmittableExtrinsicFunction } from '@polkadot/api/types';
-import type { DropdownOptions } from '../util/types';
+import type { DropdownOptions } from '../util/types.js';
 
 import React, { useCallback, useState } from 'react';
 
 import { useApi } from '@polkadot/react-hooks';
 
-import methodOptions from './options/method';
-import sectionOptions from './options/section';
-import LinkedWrapper from './LinkedWrapper';
-import SelectMethod from './SelectMethod';
-import SelectSection from './SelectSection';
+import methodOptions from './options/method.js';
+import sectionOptions from './options/section.js';
+import LinkedWrapper from './LinkedWrapper.js';
+import SelectMethod from './SelectMethod.js';
+import SelectSection from './SelectSection.js';
 
 interface Props {
   className?: string;
   defaultValue: SubmittableExtrinsicFunction<'promise'>;
-  help?: React.ReactNode;
+  filter?: (section: string, method?: string) => boolean;
   isDisabled?: boolean;
   isError?: boolean;
   isPrivate?: boolean;
@@ -26,11 +26,12 @@ interface Props {
   withLabel?: boolean;
 }
 
-function InputExtrinsic ({ className = '', defaultValue, help, isDisabled, label, onChange, withLabel }: Props): React.ReactElement<Props> {
+function InputExtrinsic ({ className = '', defaultValue, filter, isDisabled, label, onChange, withLabel }: Props): React.ReactElement<Props> {
   const { api } = useApi();
-  const [optionsMethod, setOptionsMethod] = useState<DropdownOptions>(() => methodOptions(api, defaultValue.section));
-  const [optionsSection] = useState<DropdownOptions>(() => sectionOptions(api));
+  const [optionsMethod, setOptionsMethod] = useState<DropdownOptions>(() => methodOptions(api, defaultValue.section, filter));
+  const [optionsSection] = useState<DropdownOptions>(() => sectionOptions(api, filter));
   const [value, setValue] = useState<SubmittableExtrinsicFunction<'promise'>>((): SubmittableExtrinsicFunction<'promise'> => defaultValue);
+  const [{ defaultMethod, defaultSection }] = useState(() => ({ defaultMethod: defaultValue.method, defaultSection: defaultValue.section }));
 
   const _onKeyChange = useCallback(
     (newValue: SubmittableExtrinsicFunction<'promise'>): void => {
@@ -46,25 +47,24 @@ function InputExtrinsic ({ className = '', defaultValue, help, isDisabled, label
   const _onSectionChange = useCallback(
     (newSection: string): void => {
       if (newSection !== value.section) {
-        const optionsMethod = methodOptions(api, newSection);
+        const optionsMethod = methodOptions(api, newSection, filter);
 
         setOptionsMethod(optionsMethod);
         _onKeyChange(api.tx[newSection][optionsMethod[0].value]);
       }
     },
-    [_onKeyChange, api, value]
+    [_onKeyChange, api, filter, value]
   );
 
   return (
     <LinkedWrapper
       className={className}
-      help={help}
       label={label}
       withLabel={withLabel}
     >
       <SelectSection
         className='small'
-        defaultValue={isDisabled ? value.section : undefined}
+        defaultValue={defaultSection}
         isDisabled={isDisabled}
         onChange={isDisabled ? undefined : _onSectionChange}
         options={optionsSection}
@@ -73,7 +73,7 @@ function InputExtrinsic ({ className = '', defaultValue, help, isDisabled, label
       <SelectMethod
         api={api}
         className='large'
-        defaultValue={isDisabled ? value.method : undefined}
+        defaultValue={defaultMethod}
         isDisabled={isDisabled}
         onChange={isDisabled ? undefined : _onKeyChange}
         options={optionsMethod}

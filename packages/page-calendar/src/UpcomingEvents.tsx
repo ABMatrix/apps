@@ -1,22 +1,23 @@
-// Copyright 2017-2021 @polkadot/app-calendar authors & contributors
+// Copyright 2017-2023 @polkadot/app-calendar authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { EntryInfo } from './types';
+import type { EntryInfoTyped } from './types.js';
 
 import React, { useCallback, useMemo } from 'react';
-import styled from 'styled-components';
 
-import { Button } from '@polkadot/react-components';
+import { Button, styled } from '@polkadot/react-components';
 
-import DayItem from './DayItem';
+import DayItem from './DayItem.js';
+import { useTranslation } from './translate.js';
 
 interface Props {
   className?: string;
-  scheduled: EntryInfo[];
+  scheduled: EntryInfoTyped[];
   setView: (v: boolean) => void;
 }
 
 function UpcomingEvents ({ className, scheduled, setView }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
   const sched = useMemo(
     () => scheduled.sort((a, b) => a.dateTime - b.dateTime),
     [scheduled]
@@ -28,7 +29,7 @@ function UpcomingEvents ({ className, scheduled, setView }: Props): React.ReactE
   );
 
   return (
-    <div className={className}>
+    <StyledDiv className={className}>
       <h1>
         <div>
           <Button
@@ -36,7 +37,7 @@ function UpcomingEvents ({ className, scheduled, setView }: Props): React.ReactE
             icon='calendar'
             onClick={_setView}
           />
-          Upcoming Events
+          {t<string>('Upcoming Events')}
         </div>
       </h1>
       <ul className='allEventsWrapper'>
@@ -51,11 +52,11 @@ function UpcomingEvents ({ className, scheduled, setView }: Props): React.ReactE
           );
         })}
       </ul>
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(UpcomingEvents)`
+const StyledDiv = styled.div`
   flex: 0;
   max-width: max-content;
 
@@ -70,4 +71,6 @@ export default React.memo(styled(UpcomingEvents)`
   .allEventsWrapper {
     padding-inline-start: 10px;
   }
-`);
+`;
+
+export default React.memo(UpcomingEvents);

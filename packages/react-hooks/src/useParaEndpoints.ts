@@ -1,16 +1,16 @@
-// Copyright 2017-2021 @polkadot/react-hooks authors & contributors
+// Copyright 2017-2023 @polkadot/react-hooks authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
 import type { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import type { BN } from '@polkadot/util';
 
 import { useMemo } from 'react';
 
 import { createWsEndpoints } from '@polkadot/apps-config';
 import { bnToBn } from '@polkadot/util';
 
-import { createNamedHook } from './createNamedHook';
-import { useApi } from './useApi';
+import { createNamedHook } from './createNamedHook.js';
+import { useApi } from './useApi.js';
 
 const endpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
@@ -23,7 +23,9 @@ function extractRelayEndpoints (genesisHash: string): LinkOption[] {
 function extractParaEndpoints (allEndpoints: LinkOption[], paraId: BN | number): LinkOption[] {
   const numId = bnToBn(paraId).toNumber();
 
-  return allEndpoints.filter(({ paraId }) => paraId === numId);
+  return allEndpoints.filter(({ paraId }) =>
+    paraId === numId
+  );
 }
 
 function useRelayEndpointsImpl (): LinkOption[] {

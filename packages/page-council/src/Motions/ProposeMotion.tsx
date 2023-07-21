@@ -1,17 +1,17 @@
-// Copyright 2017-2021 @polkadot/app-council authors & contributors
+// Copyright 2017-2023 @polkadot/app-council authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { SubmittableExtrinsic } from '@polkadot/api/types';
 
-import BN from 'bn.js';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { getProposalThreshold } from '@polkadot/apps-config';
-import { Button, Extrinsic, InputAddress, InputNumber, Modal, TxButton } from '@polkadot/react-components';
+import { Button, InputAddress, InputNumber, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useCollectiveInstance, useToggle } from '@polkadot/react-hooks';
-import { BN_ZERO } from '@polkadot/util';
+import { Extrinsic } from '@polkadot/react-params';
+import { BN, BN_ZERO } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   isMember: boolean;
@@ -40,7 +40,7 @@ function Propose ({ isMember, members }: Props): React.ReactElement<Props> | nul
   useEffect((): void => {
     members && setThreshold({
       isThresholdValid: members.length !== 0,
-      threshold: new BN(Math.ceil(members.length * getProposalThreshold(api)))
+      threshold: new BN(Math.min(members.length, Math.ceil(members.length * getProposalThreshold(api))))
     });
   }, [api, members]);
 
@@ -82,7 +82,6 @@ function Propose ({ isMember, members }: Props): React.ReactElement<Props> | nul
             <Modal.Columns hint={t<string>('The council account for the proposal. The selection is filtered by the current members.')}>
               <InputAddress
                 filter={members}
-                help={t<string>('Select the account you wish to make the proposal with.')}
                 label={t<string>('propose from account')}
                 onChange={setAcountId}
                 type='account'
@@ -92,7 +91,6 @@ function Propose ({ isMember, members }: Props): React.ReactElement<Props> | nul
             <Modal.Columns hint={t<string>('The desired threshold. Here set to a default of 50%+1, as applicable for general proposals.')}>
               <InputNumber
                 className='medium'
-                help={t<string>('The minimum number of council votes required to approve this motion')}
                 isError={!threshold || threshold.eqn(0) || threshold.gtn(members.length)}
                 label={t<string>('threshold')}
                 onChange={_setThreshold}

@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/apps-config authors & contributors
+// Copyright 2017-2023 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { OverrideBundleDefinition } from '@polkadot/types/types';
@@ -23,13 +23,24 @@ const definitions: OverrideBundleDefinition = {
             Wasm: 'AccountId'
           }
         },
+        EthTransaction: 'LegacyTransaction',
         EraStakingPoints: {
           total: 'Balance',
           stakers: 'BTreeMap<AccountId, Balance>',
           formerStakedEra: 'EraIndex',
           claimedRewards: 'Balance'
         },
+        PalletDappsStakingEraStakingPoints: {
+          total: 'Balance',
+          stakers: 'BTreeMap<AccountId, Balance>',
+          formerStakedEra: 'EraIndex',
+          claimedRewards: 'Balance'
+        },
         EraRewardAndStake: {
+          rewards: 'Balance',
+          staked: 'Balance'
+        },
+        PalletDappsStakingEraRewardAndStake: {
           rewards: 'Balance',
           staked: 'Balance'
         },

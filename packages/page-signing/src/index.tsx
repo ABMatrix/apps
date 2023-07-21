@@ -1,17 +1,16 @@
-// Copyright 2017-2021 @polkadot/app-signing authors & contributors
+// Copyright 2017-2023 @polkadot/app-signing authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppProps as Props } from '@polkadot/react-components/types';
 
 import React, { useRef } from 'react';
-import { Route, Switch } from 'react-router';
+import { Route, Routes } from 'react-router';
 
 import { Tabs } from '@polkadot/react-components';
 
-import Hash from './Hash';
-import Sign from './Sign';
-import { useTranslation } from './translate';
-import Verify from './Verify';
+import Sign from './Sign.js';
+import { useTranslation } from './translate.js';
+import Verify from './Verify.js';
 
 function SigningApp ({ basePath }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -25,10 +24,6 @@ function SigningApp ({ basePath }: Props): React.ReactElement<Props> {
     {
       name: 'verify',
       text: t<string>('Verify signature')
-    },
-    {
-      name: 'hash',
-      text: t<string>('Hash data')
     }
   ]);
 
@@ -38,11 +33,22 @@ function SigningApp ({ basePath }: Props): React.ReactElement<Props> {
         basePath={basePath}
         items={itemsRef.current}
       />
-      <Switch>
-        <Route path={`${basePath}/hash`}><Hash /></Route>
-        <Route path={`${basePath}/verify`}><Verify /></Route>
-        <Route><Sign /></Route>
-      </Switch>
+      <Routes>
+        <Route path={basePath}>
+          <Route
+            element={
+              <Verify />
+            }
+            path='verify'
+          />
+          <Route
+            element={
+              <Sign />
+            }
+            index
+          />
+        </Route>
+      </Routes>
     </main>
   );
 }

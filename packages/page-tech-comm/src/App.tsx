@@ -1,22 +1,23 @@
-// Copyright 2017-2021 @polkadot/app-tech-comm authors & contributors
+// Copyright 2017-2023 @polkadot/app-tech-comm authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AccountId, Hash } from '@polkadot/types/interfaces';
+import type { CollectiveType } from '@polkadot/react-hooks/types';
+import type { Hash } from '@polkadot/types/interfaces';
 
 import React, { useMemo } from 'react';
-import { Route, Switch } from 'react-router';
+import { Route, Routes } from 'react-router';
 
 import { Tabs } from '@polkadot/react-components';
 import { useApi, useCall, useCollectiveMembers } from '@polkadot/react-hooks';
 
-import Overview from './Overview';
-import Proposals from './Proposals';
-import { useTranslation } from './translate';
+import Overview from './Overview/index.js';
+import Proposals from './Proposals/index.js';
+import { useTranslation } from './translate.js';
 
 interface Props {
   basePath: string;
   className?: string;
-  type: 'membership' | 'technicalCommittee';
+  type: CollectiveType;
 }
 
 const HIDDEN_EMPTY: string[] = [];
@@ -25,8 +26,7 @@ const HIDDEN_PROPOSALS: string[] = ['proposals'];
 function TechCommApp ({ basePath, className, type }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { api } = useApi();
-  const { isMember, members } = useCollectiveMembers(type);
-  const prime = useCall<AccountId | null>(api.derive[type].prime);
+  const { isMember, members, prime } = useCollectiveMembers(type);
   const hasProposals = useCall<boolean>(api.derive[type].hasProposals);
   const proposalHashes = useCall<Hash[]>(api.derive[type].proposalHashes);
 
@@ -53,26 +53,34 @@ function TechCommApp ({ basePath, className, type }: Props): React.ReactElement<
         }
         items={items}
       />
-      <Switch>
-        <Route path={`${basePath}/proposals`}>
-          <Proposals
-            isMember={isMember}
-            members={members}
-            prime={prime}
-            proposalHashes={proposalHashes}
-            type={type}
-          />
-        </Route>
+      <Routes>
         <Route path={basePath}>
-          <Overview
-            isMember={isMember}
-            members={members}
-            prime={prime}
-            proposalHashes={proposalHashes}
-            type={type}
+          <Route
+            element={
+              <Proposals
+                isMember={isMember}
+                members={members}
+                prime={prime}
+                proposalHashes={proposalHashes}
+                type={type}
+              />
+            }
+            path='proposals'
+          />
+          <Route
+            element={
+              <Overview
+                isMember={isMember}
+                members={members}
+                prime={prime}
+                proposalHashes={proposalHashes}
+                type={type}
+              />
+            }
+            index
           />
         </Route>
-      </Switch>
+      </Routes>
     </main>
   );
 }

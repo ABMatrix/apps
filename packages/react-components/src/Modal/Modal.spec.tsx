@@ -1,16 +1,18 @@
-// Copyright 2017-2021 @polkadot/app-bounties authors & contributors
+// Copyright 2017-2023 @polkadot/app-bounties authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen } from '@testing-library/react';
+/// <reference types="@polkadot/dev-test/globals.d.ts" />
+
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { Suspense } from 'react';
 import { ThemeProvider } from 'styled-components';
 
-import { lightTheme } from '@polkadot/apps/themes';
+import { lightTheme } from '@polkadot/react-components';
 import { useToggle } from '@polkadot/react-hooks';
 
-import Button from '../Button';
-import i18next from '../i18n';
-import Modal from './index';
+import Button from '../Button/index.js';
+import i18next from '../i18n/index.js';
+import Modal from './index.js';
 
 function TestModal () {
   const [isOpen, toggleIsOpen] = useToggle();
@@ -59,34 +61,43 @@ describe('Modal Component', () => {
     await i18next.changeLanguage('en');
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('opens and closes modal', async () => {
     renderModal();
 
-    await expectModalToBeClosed();
-    await openModal();
-    await expectModalToBeOpen();
-    await closeModal();
-    await expectModalToBeClosed();
+    await waitFor(async () => {
+      await expectModalToBeClosed();
+      await openModal();
+      await expectModalToBeOpen();
+      await closeModal();
+      await expectModalToBeClosed();
+    });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('renders all modal sections', async () => {
     renderModal();
 
-    await expectModalToBeClosed();
-    await openModal();
-    await expectModalToBeOpen();
+    await waitFor(async () => {
+      await expectModalToBeClosed();
+      await openModal();
+      await expectModalToBeOpen();
 
-    await screen.findByText('Test Modal');
-    await screen.findAllByText('Test Modal Content');
-    await screen.findByRole('button', { name: 'Submit Modal' });
+      await screen.findByText('Test Modal');
+      await screen.findAllByText('Test Modal Content');
+      await screen.findByRole('button', { name: 'Submit Modal' });
+    });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('closes modal with ESC button', async () => {
     renderModal();
 
-    await expectModalToBeClosed();
-    await openModal();
-    await expectModalToBeOpen();
+    await waitFor(async () => {
+      await expectModalToBeClosed();
+      await openModal();
+      await expectModalToBeOpen();
+    });
 
     fireEvent.keyDown(window, {
       charCode: 27,
@@ -95,16 +106,21 @@ describe('Modal Component', () => {
       keyCode: 27
     });
 
-    await expectModalToBeClosed();
+    await waitFor(async () => {
+      await expectModalToBeClosed();
+    });
   });
 });
 
 async function expectModalToBeClosed () {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   await screen.findByRole('button', { name: 'Open Test Modal' });
+
   expect(screen.queryAllByTestId('test-modal')).toHaveLength(0);
 }
 
 async function expectModalToBeOpen () {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   await screen.findByTestId('test-modal');
 }
 

@@ -1,506 +1,1012 @@
-// Copyright 2017-2021 @polkadot/apps-config authors & contributors
+// Copyright 2017-2023 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { TFunction } from 'i18next';
-import type { LinkOption } from './types';
+import type { EndpointOption } from './types.js';
 
-import { expandEndpoints } from './util';
+import { chains3dpassSVG, chainsAcalaSVG, chainsAlephSVG, chainsBrainstormPNG, chainsCreditcoinTestPNG, chainsDebioSVG, chainsEquilibriumSVG, chainsFerrumPNG, chainsFragnovaPNG, chainsJurPNG, chainsKintsugiPNG, chainsLogionPNG, chainsMyriadPNG, chainsShidenPNG, chainsSkyekiwiPNG, chainsTanglePNG } from '../ui/logos/chains/index.js';
+import { nodesAjunaPNG, nodesArcticPNG, nodesAresGladiosSVG, nodesAutomataPNG, nodesBifrostSVG, nodesBitcountryPNG, nodesCereSVG, nodesCessPNG, nodesCloverSVG, nodesCrustMaxwellSVG, nodesCurioSVG, nodesDatahighwayPNG, nodesDockPNG, nodesDolphinSVG, nodesDotmogSVG, nodesEdgewareWhitePNG, nodesEncointerBlueSVG, nodesFantourPNG, nodesGalitalLogoPNG, nodesGamepowerSVG, nodesGeekSVG, nodesInterlaySVG, nodesIpsePNG, nodesJazPNG, nodesJupiterSVG, nodesKarmachainSVG, nodesKhalaSVG, nodesKiltPNG, nodesKlugPNG, nodesKylinPNG, nodesLaminarCircleSVG, nodesLitentryPNG, nodesMantaPNG, nodesMathSVG, nodesMinixPNG, nodesMoonbaseAlphaSVG, nodesMybankPNG, nodesNftmartPNG, nodesNodleSVG, nodesOpalLogoPNG, nodesOpportunityPNG, nodesPangoroSVG, nodesPhalaSVG, nodesPhoenixPNG, nodesPichiuPNG, nodesPolkadexSVG, nodesPolkafoundrySVG, nodesPolymeshSVG, nodesPontemSVG, nodesPrismPNG, nodesRealisPNG, nodesRiochainSVG, nodesSherpaxPNG, nodesSoonsocialPNG, nodesSoraSubstrateSVG, nodesSubdaoPNG, nodesSubgameSVG, nodesSubspacePNG, nodesSubstrateHexagonSVG, nodesTernoaSVG, nodesThebifrostPNG, nodesUniartsPNG, nodesUniqueSVG, nodesUnitnetworkPNG, nodesWeb3gamesSVG, nodesZCloakSVG } from '../ui/logos/nodes/index.js';
 
-/* eslint-disable sort-keys */
+export * from './testingRelayRococo.js';
+export * from './testingRelayWestend.js';
 
 // The available endpoints that will show in the dropdown. For the most part (with the exception of
 // Polkadot) we try to keep this to live chains only, with RPCs hosted by the community/chain vendor
 //   info: The chain logo name as defined in ../ui/logos/index.ts in namedLogos (this also needs to align with @polkadot/networks)
 //   text: The text to display on the dropdown
-//   value: The actual hosted secure websocket endpoint
-
-export function createTesting (t: TFunction, firstOnly: boolean, withSort: boolean): LinkOption[] {
-  return expandEndpoints(t, [
-    // alphabetical based on chain name, e.g. Amber, Arcadia, Beresheet, ...
-    {
-      info: 'aleph',
-      text: t('rpc.test.aleph', 'Aleph Zero Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Aleph Zero Foundation': 'wss://test-api.alephzero.org'
-      }
-    },
-    {
-      info: 'centrifuge',
-      text: t('rpc.test.amber', 'Amber', { ns: 'apps-config' }),
-      providers: {
-        Centrifuge: 'wss://fullnode.amber.centrifuge.io'
-      }
-    },
-    {
-      info: 'nodle',
-      text: t('rpc.test.nodle-arcadia', 'Arcadia', { ns: 'apps-config' }),
-      providers: {
-        Nodle: 'wss://arcadia1.nodleprotocol.io'
-      }
-    },
-    {
-      info: 'Ares Gladios',
-      text: t('rpc.test.ares.network', 'Ares Gladios', { ns: 'apps-config' }),
-      providers: {
-        'Ares Protocol': 'wss://gladios.aresprotocol.io'
-      }
-    },
-    {
-      info: 'edgeware',
-      text: t('rpc.test.beresheet', 'Beresheet', { ns: 'apps-config' }),
-      providers: {
-        'Commonwealth Labs': 'wss://beresheet.edgewa.re'
-      }
-    },
-    {
-      info: 'bifrost',
-      text: t('rpc.test.bifrost', 'Bifrost', { ns: 'apps-config' }),
-      providers: {
-        Liebi: 'wss://asgard-rpc.liebi.com/ws'
-      }
-    },
-    {
-      info: 'bitcountry',
-      text: t('rpc.test.bitcountry', 'Bit.Country - Metaverse Network', { ns: 'apps-config' }),
-      providers: {
-        'Metaverse Foundation': 'wss://tewai-rpc.bit.country'
-      }
-    },
-    {
-      info: 'canvas',
-      text: t('rpc.test.canvas', 'Canvas', { ns: 'apps-config' }),
-      providers: {
-        Parity: 'wss://canvas-rpc.parity.io'
-      }
-    },
-    {
-      info: 'clover',
-      isDisabled: true, // Cannot construct unknown type BridgeNetworks
-      text: t('rpc.test.clover.finance', 'Clover', { ns: 'apps-config' }),
-      providers: {
-        Clover: 'wss://api.clover.finance/'
-      }
-    },
-    {
-      info: 'Crust Maxwell',
-      text: t('rpc.test.crust.network', 'Crust Maxwell', { ns: 'apps-config' }),
-      providers: {
-        'Crust Network': 'wss://api.crust.network/',
-        'DCloud Foundation': 'wss://api.decloudf.com/',
-        Pinknode: 'wss://rpc.pinknode.io/maxwell/explorer'
-      }
-    },
-    {
-      info: 'datahighway',
-      isDisabled: true,
-      text: t('rpc.test.datahighway.spreehafen', 'Spreehafen', { ns: 'apps-config' }),
-      providers: {
-        MXC: 'wss://spreehafen.datahighway.com'
-      }
-    },
-    {
-      info: 'dock-testnet',
-      text: t('rpc.test.dock-pos-testnet', 'Dock', { ns: 'apps-config' }),
-      providers: {
-        'Dock Association': 'wss://knox-1.dock.io'
-      }
-    },
-    {
-      info: 'dotmog',
-      text: t('rpc.test.dotmog', 'DOTMog', { ns: 'apps-config' }),
-      providers: {
-        DOTMog: 'wss://mogiway-01.dotmog.com'
-      }
-    },
-    {
-      info: 'dusty',
-      text: t('rpc.test.dusty', 'Dusty', { ns: 'apps-config' }),
-      providers: {
-        'Stake Technologies': 'wss://rpc.dusty.plasmnet.io/',
-        Pinknode: 'wss://rpc.pinknode.io/dusty/explorer'
-      }
-    },
-    {
-      info: 'encointer_cantillon',
-      text: t('rpc.test.encointer.cantillon', 'Encointer Cantillon', { ns: 'apps-config' }),
-      providers: {
-        'Encointer Association': 'wss://cantillon.encointer.org'
-      }
-    },
-    {
-      info: 'encointer_gesell',
-      text: t('rpc.test.encointer.gesell', 'Encointer Gesell', { ns: 'apps-config' }),
-      providers: {
-        'Encointer Association': 'wss://gesell.encointer.org'
-      }
-    },
-    {
-      info: 'equilibrium',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6250
-      text: t('rpc.test.equilibriumtestnet', 'Equilibrium', { ns: 'apps-config' }),
-      providers: {
-        Equilibrium: 'wss://testnet.equilibrium.io'
-      }
-    },
-    {
-      info: 'substrate',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/5571
-      text: t('rpc.test.flamingfir', 'Flaming Fir', { ns: 'apps-config' }),
-      providers: {
-        Parity: 'wss://substrate-rpc.parity.io'
-      }
-    },
-    {
-      info: 'fantour',
-      text: t('rpc.test.fantour', 'Fantour', { ns: 'apps-config' }),
-      providers: {
-        FantourDev: 'wss://test-ws.fantour.io'
-      }
-    },
-    {
-      info: 'Galital',
-      text: t('rpc.test.galital', 'Galital PC2', { ns: 'apps-config' }),
-      providers: {
-        StarkleyTech: 'wss://galital-rpc-testnet.starkleytech.com'
-      }
-    },
-    {
-      info: 'galois',
-      text: t('rpc.test.galois', 'Galois', { ns: 'apps-config' }),
-      providers: {
-        MathWallet: 'wss://galois-hk.maiziqianbao.net/ws',
-        'MathWallet Backup': 'wss://galois.maiziqianbao.net/ws'
-      }
-    },
-    {
-      info: 'gamepower',
-      text: t('rpc.test.gamepower', 'GamePower', { ns: 'apps-config' }),
-      providers: {
-        GamePower: 'wss://gamepower.io'
-      }
-    },
-    {
-      info: 'geek',
-      text: t('rpc.test.geek', 'GeekCash', { ns: 'apps-config' }),
-      providers: {
-        'Geek Team': 'wss://testnet.geekcash.org'
-      }
-    },
-    {
-      info: 'halongbay',
-      text: t('rpc.test.halongbay', 'Halongbay Testnet', { ns: 'apps-config' }),
-      providers: {
-        Halongbay: 'wss://halongbay.polkafoundry.com'
-      }
-    },
-    {
-      info: 'interbtc',
-      text: t('rpc.test.interbtc', 'InterBTC', { ns: 'apps-config' }),
-      providers: {
-        Interlay: 'wss://api.interlay.io/parachain/'
-      }
-    },
-    {
-      info: 'ipse',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6242
-      text: t('rpc.test.ipse', 'IPSE', { ns: 'apps-config' }),
-      providers: {
-        'IPSE China': 'wss://testnet-china.ipse.io',
-        'IPSE USA': 'wss://testnet-usa.ipse.io',
-        'IPSE Europe': 'wss://testnet-europe.ipse.io'
-      }
-    },
-    {
-      info: 'jupiter',
-      text: t('rpc.test.jupiter', 'Jupiter', { ns: 'apps-config' }),
-      providers: {
-        Elara: 'wss://pub.elara.patract.io/jupiter',
-        Patract: 'wss://ws.jupiter-poa.patract.cn'
-      }
-    },
-    {
-      info: 'phala',
-      text: t('rpc.test.phala', 'Khala (Para2)', { ns: 'apps-config' }),
-      providers: {
-        'Phala Network': 'wss://para2-api.phala.network/ws/'
-      }
-    },
-    {
-      info: 'kilt',
-      text: t('rpc.test.kilt', 'KILT Mashnet', { ns: 'apps-config' }),
-      providers: {
-        'KILT Protocol': 'wss://full-nodes.kilt.io:9944/'
-      }
-    },
-    {
-      info: 'kilt',
-      text: t('rpc.test.kilt', 'KILT Peregrine', { ns: 'apps-config' }),
-      providers: {
-        'KILT Protocol': 'wss://peregrine.kilt.io/'
-      }
-    },
-    {
-      info: 'klugdossier',
-      text: t('rpc.KlugDossier', 'Klug Dossier', { ns: 'apps-config' }),
-      providers: {
-        'Klug Dossier': 'wss://klugdossier.net/'
-      }
-    },
-    {
-      info: 'kylin',
-      text: t('testnet.kylin-node.co.uk', 'Kylin Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Kylin Network': 'wss://testnet.kylin-node.co.uk'
-      }
-    },
-    {
-      info: 'litentry',
-      text: t('rpc.test.litentry', 'Litentry Testnet', { ns: 'apps-config' }),
-      providers: {
-        Litentry: 'wss://testnet.litentry.io'
-      }
-    },
-    {
-      info: 'acala',
-      text: t('rpc.test.mandala', 'Mandala', { ns: 'apps-config' }),
-      providers: {
-        Acala: 'wss://acala-mandala.api.onfinality.io/public-ws',
-        Pinknode: 'wss://rpc.pinknode.io/mandala/explorer'
-      }
-    },
-    {
-      info: 'manta',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6384
-      text: t('rpc.manta', 'Manta Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Manta Testnet': 'wss://ws.f1.testnet.manta.network'
-      }
-    },
-    {
-      info: 'moonbaseAlpha',
-      text: t('rpc.test.moonbeam', 'Moonbase Alpha', { ns: 'apps-config' }),
-      providers: {
-        'Moonbeam Network': 'wss://wss.testnet.moonbeam.network',
-        OnFinality: 'wss://moonbeam-alpha.api.onfinality.io/public-ws',
-        Pinknode: 'wss://rpc.pinknode.io/alphanet/explorer'
-      }
-    },
-    {
-      info: 'mybank',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/5845
-      text: t('rpc.test.mybank', 'mybank.network', { ns: 'apps-config' }),
-      providers: {
-        MYBANK: 'wss://mybank.network/substrate'
-      }
-    },
-    {
-      info: 'nftmart',
-      text: t('rpc.test.nftmart', 'NFTMart', { ns: 'apps-config' }),
-      providers: {
-        NFTMartDev: 'wss://dev-ws.nftmart.io',
-        NFTMartStaging: 'wss://staging-ws.nftmart.io'
-      }
-    },
-    {
-      info: 'oak-testnet',
-      text: t('rpc.test.oak', 'OAK Testnet', { ns: 'apps-config' }),
-      providers: {
-        'OAK Network': 'wss://rpc.testnet.oak.tech'
-      }
-    },
-    {
-      info: 'opportunity',
-      text: t('rpc.test.opportunity', 'Opportunity', { ns: 'apps-config' }),
-      providers: {
-        'Standard Protocol': 'wss://rpc.opportunity.standard.tech'
-      }
-    },
-    {
-      info: 'origintrail-parachain-testnet',
-      text: t('rpc.test.origintrail', 'OriginTrail Parachain Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Trace Labs': 'wss://parachain-rpc.origin-trail.network'
-      }
-    },
-    {
-      info: 'pangolin',
-      text: t('rpc.test.pangolin', 'Pangolin', { ns: 'apps-config' }),
-      providers: {
-        'Darwinia Network': 'wss://pangolin-rpc.darwinia.network'
-      }
-    },
-    {
-      info: 'pangoro',
-      text: t('rpc.test.pangoro', 'Pangoro', { ns: 'apps-config' }),
-      providers: {
-        'Darwinia Network': 'wss://pangoro-rpc.darwinia.network'
-      }
-    },
-    {
-      info: 'phoenix',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6181
-      text: t('rpc.test.phoenix', 'Phoenix Mashnet', { ns: 'apps-config' }),
-      providers: {
-        'phoenix Protocol': 'wss://phoenix-ws.coinid.pro/'
-      }
-    },
-    {
-      info: 'pichiu',
-      text: t('westend.kylin-node.co.uk', 'Pichiu Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Kylin Network': 'wss://westend.kylin-node.co.uk'
-      }
-    },
-    {
-      info: 'polkadex',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6312
-      text: t('rpc.test.polkadex', 'Polkadex', { ns: 'apps-config' }),
-      providers: {
-        'Polkadex Team': 'wss://blockchain.polkadex.trade'
-      }
-    },
-    {
-      info: 'polymesh',
-      text: t('rpc.test.polymesh', 'Polymesh ITN', { ns: 'apps-config' }),
-      providers: {
-        Polymath: 'wss://itn-rpc.polymesh.live'
-      }
-    },
-    {
-      info: 'pontem',
-      text: t('rpc.test.pontem', 'Pontem', { ns: 'apps-config' }),
-      providers: {
-        Pontem: 'wss://testnet.pontem.network/ws'
-      }
-    },
-    {
-      info: 'prism',
-      text: t('rpc.test.prism', 'Prism', { ns: 'apps-config' }),
-      providers: {
-        Prism: 'wss://testnet.psm.link'
-      }
-    },
-    {
-      info: 'realis',
-      text: t('rpc.test.realis', 'Realis.Network', { ns: 'apps-config' }),
-      providers: {
-        'Realis.Network': 'wss://rpc.realis.network/'
-      }
-    },
-    {
-      info: 'riochain',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/6181
-      text: t('rpc.test.riochain', 'RioChain', { ns: 'apps-config' }),
-      providers: {
-        'RioChain Staging': 'wss://node.v1.staging.riochain.io'
-      }
-    },
-    {
-      info: 'shibuya',
-      text: t('rpc.test.shibuya', 'Shibuya', { ns: 'apps-config' }),
-      providers: {
-        StakeTechnologies: 'wss://rpc.shibuya.astar.network'
-      }
-    },
-    {
-      info: 'snowbridge',
-      text: t('rpc.test.snowbridge', 'Snowbridge', { ns: 'apps-config' }),
-      providers: {
-        Snowfork: 'wss://parachain-rpc.snowbridge.network'
-      }
-    },
-    {
-      info: 'sora-substrate',
-      text: t('rpc.test.sora-substrate-staging', 'SORA-staging', { ns: 'apps-config' }),
-      providers: {
-        Soramitsu: 'wss://ws.stage.sora2.soramitsu.co.jp'
-      }
-    },
-    {
-      info: 'subgame',
-      text: t('rpc.test.subgame', 'SubGame Staging', { ns: 'apps-config' }),
-      providers: {
-        SubGame: 'wss://staging.subgame.org'
-      }
-    },
-    {
-      info: 'subspace',
-      text: t('rpc.test.subspace', 'Subspace Testnet', { ns: 'apps-config' }),
-      providers: {
-        'Subspace Network': 'wss://test-rpc.subspace.network'
-      }
-    },
-    {
-      info: 'ternoa-testnet',
-      text: t('rpc.test.ternoa-testnet', 'Ternoa Testnet', { ns: 'apps-config' }),
-      providers: {
-        CapsuleCorp: 'wss://testnet.ternoa.com/'
-      }
-    },
-    {
-      info: 'laminar',
-      text: t('rpc.test.turbulence', 'Turbulence', { ns: 'apps-config' }),
-      providers: {
-        Laminar: 'wss://testnet-node-1.laminar-chain.laminar.one/ws'
-      }
-    },
-    {
-      info: 'uniarts',
-      text: t('rpc.test.uniarts', 'UniArts', { ns: 'apps-config' }),
-      providers: {
-        UniArts: 'wss://testnet.uniarts.network'
-      }
-    },
-    {
-      info: 'unique',
-      text: t('rpc.test.unique', 'Unique', { ns: 'apps-config' }),
-      providers: {
-        Unique: 'wss://testnet2.unique.network'
-      }
-    },
-    {
-      info: 'unitv',
-      isDisabled: true, // https://github.com/polkadot-js/apps/issues/5684
-      text: t('rpc.test.unitv', 'Unit Network', { ns: 'apps-config' }),
-      providers: {
-        'Unit Network': 'wss://unitventures.io/'
-      }
-    },
-    {
-      info: 'vodka',
-      text: t('rpc.test.vodka', 'Vodka', { ns: 'apps-config' }),
-      providers: {
-        Vodka: 'wss://vodka.rpc.neatcoin.org/ws'
-      }
-    },
-    {
-      info: 'web3games',
-      isDisabled: true, // https://github.com/polkadot-js/apps/runs/2755409009?check_suite_focus=true
-      text: t('rpc.test.web3games', 'Web3Games', { ns: 'apps-config' }),
-      providers: {
-        Web3Games: 'wss://substrate.org.cn:4443'
-      }
-    },
-    {
-      info: 'zCloak',
-      text: t('rpc.test.zCloak', 'zCloak-network', { ns: 'apps-config' }),
-      providers: {
-        'zCloak Network': 'wss://test1.zcloak.network'
-      }
-    },
-    {
-      info: 'zeitgeist',
-      text: t('rpc.test.zeitgeist', 'Zeitgeist Battery Station', { ns: 'apps-config' }),
-      providers: {
-        Zeitgeist: 'wss://bsr.zeitgeist.pm'
-      }
-    },
-    {
-      info: 'zero',
-      text: t('rpc.test.zero', 'Zero', { ns: 'apps-config' }),
-      providers: {
-        ZERO: 'wss://alphaville.zero.io'
-      }
+//   providers: The actual hosted secure websocket endpoint
+//
+// IMPORTANT: Alphabetical based on text
+export const testChains: Omit<EndpointOption, 'teleport'>[] = [
+  {
+    info: '3dpass-testnet',
+    providers: {
+      // '3dpass': 'wss://test-rpc.3dpass.org' // https://github.com/polkadot-js/apps/issues/9443
+    },
+    text: '3DPass Testnet',
+    ui: {
+      color: '#323232',
+      logo: chains3dpassSVG
     }
-  ], firstOnly, withSort);
-}
+  },
+  {
+    info: 'ajuna',
+    providers: {
+      'Ajuna Network': 'wss://rpc-test.ajuna.network'
+    },
+    text: 'Ajuna Testnet',
+    ui: {
+      color: '#161212',
+      logo: nodesAjunaPNG
+    }
+  },
+  {
+    info: 'aleph-testnet',
+    providers: {
+      'Aleph Zero Foundation': 'wss://ws.test.azero.dev',
+      Dwellir: 'wss://aleph-zero-testnet-rpc.dwellir.com'
+    },
+    text: 'Aleph Zero Testnet',
+    ui: {
+      color: '#00CCAB',
+      logo: chainsAlephSVG
+    }
+  },
+  {
+    info: 'nodle',
+    providers: {
+      // Nodle: 'wss://arcadia1.nodleprotocol.io' // https://github.com/polkadot-js/apps/issues/7652
+    },
+    text: 'Arcadia',
+    ui: {
+      color: '#1ab394',
+      logo: nodesNodleSVG
+    }
+  },
+  {
+    info: 'arctic',
+    providers: {
+      // Arctic: 'wss://arctic-rpc.icenetwork.io:9944' // https://github.com/polkadot-js/apps/issues/9405
+    },
+    text: 'Arctic',
+    ui: {
+      logo: nodesArcticPNG
+    }
+  },
+  {
+    info: 'Ares Gladios',
+    providers: {
+      // 'Ares Protocol': 'wss://gladios.aresprotocol.io' // https://github.com/polkadot-js/apps/issues/9106
+    },
+    text: 'Ares Gladios',
+    ui: {
+      color: '#1295F0',
+      logo: nodesAresGladiosSVG
+    }
+  },
+  {
+    info: 'jaz',
+    providers: {
+      // Jaz: 'wss://ws0.jaz.network' // https://github.com/polkadot-js/apps/issues/9059
+    },
+    text: 'Artio Testnet',
+    ui: {
+      color: '#121212',
+      logo: nodesJazPNG
+    }
+  },
+  {
+    info: 'automata-contextfree',
+    providers: {
+      'Automata Network': 'wss://cf-api.ata.network',
+      OnFinality: 'wss://contextfree.api.onfinality.io/public-ws'
+    },
+    text: 'Automata ContextFree',
+    ui: {
+      color: '#EC7032',
+      logo: nodesAutomataPNG
+    }
+  },
+  {
+    info: 'edgeware',
+    providers: {
+      JelliedOwl: 'wss://beresheet.jelliedowl.net'
+    },
+    text: 'Beresheet',
+    ui: {
+      logo: nodesEdgewareWhitePNG
+    }
+  },
+  {
+    info: 'bifrost',
+    providers: {
+      // Liebi: 'wss://bifrost-rpc.testnet.liebi.com/ws' // https://github.com/polkadot-js/apps/issues/8139
+    },
+    text: 'Bifrost Stage Network',
+    ui: {
+      logo: nodesBifrostSVG
+    }
+  },
+  {
+    info: 'bitcountry',
+    providers: {
+      // 'Metaverse Foundation': 'wss://tewai-rpc.bit.country' // https://github.com/polkadot-js/apps/issues/9059
+    },
+    text: 'Bit.Country - Metaverse Network',
+    ui: {
+      logo: nodesBitcountryPNG
+    }
+  },
+  {
+    info: 'cere',
+    providers: {
+      'Cere Network': 'wss://archive.testnet.cere.network/ws',
+      'Republic Crypto | Runtime': 'wss://testnet.cere-archive.republiccrypto-runtime.com:444'
+    },
+    text: 'Cere Network Testnet',
+    ui: {
+      color: '#B7AEFF',
+      logo: nodesCereSVG
+    }
+  },
+  {
+    info: 'cess-testnet',
+    providers: {
+      CESS: 'wss://testnet-rpc0.cess.cloud/ws/'
+    },
+    text: 'CESS Testnet',
+    ui: {
+      color: '#2269a9',
+      logo: nodesCessPNG
+    }
+  },
+  {
+    info: 'clover',
+    providers: {
+      // Clover: 'wss://api.clover.finance/' // Cannot construct unknown type BridgeNetworks
+    },
+    text: 'Clover',
+    ui: {
+      color: 'linear-gradient(to right, #52ad75, #7cc773)',
+      logo: nodesCloverSVG
+    }
+  },
+  {
+    info: 'creditcoin-testnet',
+    providers: {
+      'Creditcoin Foundation': 'wss://rpc.testnet.creditcoin.network/ws'
+    },
+    text: 'Creditcoin Testnet',
+    ui: {
+      color: '#00DF83',
+      logo: chainsCreditcoinTestPNG
+    }
+  },
+  {
+    info: 'Crust Maxwell',
+    providers: {
+      // 'Crust Network': 'wss://api.crust.network/', // https://github.com/polkadot-js/apps/issues/8060
+      // 'DCloud Foundation': 'wss://api.decloudf.com/' // https://github.com/polkadot-js/apps/issues/8060
+    },
+    text: 'Crust Maxwell',
+    ui: {
+      color: '#2E333B',
+      logo: nodesCrustMaxwellSVG
+    }
+  },
+  {
+    info: 'Curio',
+    providers: {
+    },
+    text: 'Curio',
+    ui: {
+      color: 'rgb(96, 98, 246)',
+      logo: nodesCurioSVG
+    }
+  },
+  {
+    info: 'datahighway',
+    isDisabled: true,
+    providers: {
+      // MXC: 'wss://spreehafen.datahighway.com' // https://github.com/polkadot-js/apps/issues/9601
+    },
+    text: 'Spreehafen',
+    ui: {
+      logo: nodesDatahighwayPNG
+    }
+  },
+  {
+    info: 'debio-testnet',
+    providers: {
+      DeBio: 'wss://ws-rpc.testnet.debio.network'
+    },
+    text: 'DeBio Testnet',
+    ui: {
+      color: '#FF56E0',
+      logo: chainsDebioSVG
+    }
+  },
+  {
+    info: 'dock-testnet',
+    providers: {
+      // 'Dock Association': 'wss://knox-1.dock.io' // https://github.com/polkadot-js/apps/issues/6831
+    },
+    text: 'Dock',
+    ui: {
+      logo: nodesDockPNG
+    }
+  },
+  {
+    info: 'dolphin',
+    providers: {
+      // 'Dolphin Testnet': 'wss://trillian.dolphin.red' // https://github.com/polkadot-js/apps/issues/7439
+    },
+    text: 'Dolphin Testnet',
+    ui: {
+      color: '#000000',
+      logo: nodesDolphinSVG
+    }
+  },
+  {
+    info: 'dotmog',
+    providers: {
+      // DOTMog: 'wss://mogiway-01.dotmog.com' // https://github.com/polkadot-js/apps/issues/8895
+    },
+    text: 'DOTMog',
+    ui: {
+      color: '#020609',
+      logo: nodesDotmogSVG
+    }
+  },
+  {
+    info: 'encointer',
+    providers: {
+      'Encointer Association': 'wss://gesell.encointer.org'
+    },
+    text: 'Encointer Gesell',
+    ui: {
+      color: '#0000cc',
+      logo: nodesEncointerBlueSVG
+    }
+  },
+  {
+    info: 'equilibrium',
+    providers: {
+      // Equilibrium: 'wss://testnet.equilibrium.io' // https://github.com/polkadot-js/apps/issues/6250
+    },
+    text: 'Equilibrium',
+    ui: {
+      color: '#1792ff',
+      logo: chainsEquilibriumSVG
+    }
+  },
+  {
+    info: 'fantour',
+    providers: {
+      // FantourDev: 'wss://test-ws.fantour.io' // https://github.com/polkadot-js/apps/issues/6519
+    },
+    text: 'Fantour',
+    ui: {
+      color: '#5a189a',
+      logo: nodesFantourPNG
+    }
+  },
+  {
+    info: 'ferrum',
+    providers: {
+      FerrumNetwork: 'wss://testnet.dev.svcs.ferrumnetwork.io'
+    },
+    text: 'Ferrum Testnet',
+    ui: {
+      color: '#b37700',
+      logo: chainsFerrumPNG
+    }
+  },
+  {
+    info: 'substrate',
+    providers: {
+      // Parity: 'wss://substrate-rpc.parity.io' // https://github.com/polkadot-js/apps/issues/5571
+    },
+    text: 'Flaming Fir',
+    ui: {
+      logo: nodesSubstrateHexagonSVG
+    }
+  },
+  {
+    info: 'fragnova',
+    providers: {
+      // 'Fragnova Network': 'wss://ws-test.fragnova.network' // https://github.com/polkadot-js/apps/issues/9490
+    },
+    text: 'Fragnova Testnet',
+    ui: {
+      color: '#6b35a8',
+      logo: chainsFragnovaPNG
+    }
+  },
+  {
+    info: 'Galital',
+    providers: {
+      // StarkleyTech: 'wss://galital-rpc-testnet.starkleytech.com' // https://github.com/polkadot-js/apps/issues/6721
+    },
+    text: 'Galital PC2',
+    ui: {
+      color: '#00063F',
+      logo: nodesGalitalLogoPNG
+    }
+  },
+  {
+    info: 'galois',
+    providers: {
+      // MathWallet: 'wss://galois-hk.maiziqianbao.net/ws', // https://github.com/polkadot-js/apps/issues/9059
+      // 'MathWallet Backup': 'wss://galois.maiziqianbao.net/ws' // https://github.com/polkadot-js/apps/issues/9109
+    },
+    text: 'Galois',
+    ui: {
+      color: '#000000',
+      logo: nodesMathSVG
+    }
+  },
+  {
+    info: 'gamepower',
+    providers: {
+      // GamePower: 'wss://gamepower.io' // https://github.com/polkadot-js/apps/issues/7223
+    },
+    text: 'GamePower',
+    ui: {
+      color: '#5d21a5',
+      logo: nodesGamepowerSVG
+    }
+  },
+  {
+    info: 'geek',
+    providers: {
+      // 'Geek Team': 'wss://testnet.geekcash.org' // https://github.com/polkadot-js/apps/issues/8361
+    },
+    text: 'GeekCash',
+    ui: {
+      color: '#4f46e5',
+      logo: nodesGeekSVG
+    }
+  },
+  {
+    info: 'halongbay',
+    providers: {
+      // Halongbay: 'wss://halongbay.polkafoundry.com' // https://github.com/polkadot-js/apps/issues/6871
+    },
+    text: 'Halongbay Testnet',
+    ui: {
+      color: '#ff527c',
+      logo: nodesPolkafoundrySVG
+    }
+  },
+  {
+    info: 'interlay-testnet',
+    providers: {
+      Interlay: 'wss://api-testnet.interlay.io/parachain/'
+    },
+    text: 'Interlay Testnet',
+    ui: {
+      logo: nodesInterlaySVG
+    }
+  },
+  {
+    info: 'brainstorm',
+    providers: {
+      // 'InvArch Team': 'wss://brainstorm.invarch.network/' // https://github.com/polkadot-js/apps/issues/8020
+    },
+    text: 'InvArch Brainstorm Testnet',
+    ui: {
+      color: '#161616',
+      logo: chainsBrainstormPNG
+    }
+  },
+  {
+    info: 'ipse',
+    isDisabled: true, // https://github.com/polkadot-js/apps/issues/6242
+    providers: {
+      'IPSE China': 'wss://testnet-china.ipse.io',
+      'IPSE Europe': 'wss://testnet-europe.ipse.io',
+      'IPSE USA': 'wss://testnet-usa.ipse.io'
+    },
+    text: 'IPSE',
+    ui: {
+      color: '#08a1e8',
+      logo: nodesIpsePNG
+    }
+  },
+  {
+    info: 'jupiter',
+    providers: {
+      // Patract: 'wss://ws.jupiter-poa.patract.cn' // https://github.com/polkadot-js/apps/issues/7765
+    },
+    text: 'Jupiter',
+    ui: {
+      color: '#7143ff',
+      logo: nodesJupiterSVG
+    }
+  },
+  {
+    info: 'jur',
+    providers: {
+      Jur: 'wss://testnet.jur.io'
+    },
+    text: 'Jur Testnet',
+    ui: {
+      color: '#203050',
+      logo: chainsJurPNG
+    }
+  },
+  {
+    info: 'karmachain',
+    providers: {
+      Karmachain: 'wss://testnet.karmaco.in/testnet/ws'
+    },
+    text: 'Karmachain Testnet',
+    ui: {
+      color: '#44259D',
+      logo: nodesKarmachainSVG
+    }
+  },
+  {
+    info: 'khala',
+    providers: {
+      // 'Phala Network': 'wss://pc-test-3.phala.network/khala/ws' // https://github.com/polkadot-js/apps/issues/6930
+    },
+    text: 'Khala (Para 3)',
+    ui: {
+      color: '#03f3f3',
+      logo: nodesKhalaSVG
+    }
+  },
+  {
+    info: 'kilt',
+    providers: {
+      'KILT Protocol': 'wss://full-nodes.kilt.io:9944/'
+    },
+    text: 'KILT Mashnet',
+    ui: {
+      logo: nodesKiltPNG
+    }
+  },
+  {
+    info: 'kilt',
+    providers: {
+      'KILT Protocol': 'wss://peregrine.kilt.io/parachain-public-ws/'
+    },
+    text: 'KILT Peregrine',
+    ui: {
+      color: 'linear-gradient(45deg, #f05a27 0%, #8c145a 100%)',
+      logo: nodesKiltPNG
+    }
+  },
+  {
+    info: 'kintsugi-testnet',
+    providers: {
+      Interlay: 'wss://api-dev-kintsugi.interlay.io/parachain'
+    },
+    text: 'Kintsugi Testnet',
+    ui: {
+      color: '#1a0a2d',
+      logo: chainsKintsugiPNG
+    }
+  },
+  {
+    info: 'klugdossier',
+    providers: {
+      // 'Klug Dossier': 'wss://klugdossier.net/' // https://github.com/polkadot-js/apps/issues/8081
+    },
+    text: 'Klug Dossier',
+    ui: {
+      color: '#663399',
+      logo: nodesKlugPNG
+    }
+  },
+  {
+    info: 'kylin',
+    providers: {
+      // 'Kylin Network': 'wss://testnet.kylin-node.co.uk' // https://github.com/polkadot-js/apps/issues/6635
+    },
+    text: 'Kylin Testnet',
+    ui: {
+      logo: nodesKylinPNG
+    }
+  },
+  {
+    info: 'litentry',
+    providers: {
+      // Litentry: 'wss://testnet.litentry.io' // https://github.com/polkadot-js/apps/issues/9059
+    },
+    text: 'Litentry Testnet',
+    ui: {
+      color: 'linear-gradient(45deg, #5cc27c 0%, #6de98f 100%)',
+      logo: nodesLitentryPNG
+    }
+  },
+  {
+    info: 'logion',
+    providers: {
+      Logion: 'wss://chimay.logion.network'
+    },
+    text: 'logion Para Testnet',
+    ui: {
+      color: 'rgb(21, 38, 101)',
+      logo: chainsLogionPNG
+    }
+  },
+  {
+    info: 'logion',
+    providers: {
+      Logion: 'wss://test-rpc01.logion.network'
+    },
+    text: 'logion Standalone Testnet',
+    ui: {
+      color: 'rgb(21, 38, 101)',
+      logo: chainsLogionPNG
+    }
+  },
+  {
+    info: 'acala',
+    providers: {
+      // Acala: 'wss://mandala.polkawallet.io' // https://github.com/polkadot-js/apps/issues/9005
+      // OnFinality: 'wss://acala-mandala.api.onfinality.io/public-ws' // https://github.com/polkadot-js/apps/issues/8105
+    },
+    text: 'Mandala',
+    ui: {
+      logo: chainsAcalaSVG
+    }
+  },
+  {
+    info: 'manta',
+    providers: {
+      // 'Manta Testnet': 'wss://ws.f1.testnet.manta.network' // https://github.com/polkadot-js/apps/issues/6384
+    },
+    text: 'Manta Testnet',
+    ui: {
+      color: '#2070a6',
+      logo: nodesMantaPNG
+    }
+  },
+  {
+    info: 'minix',
+    providers: {
+      // Chainx: 'wss://minichain.coming.chat/ws' // https://github.com/polkadot-js/apps/issues/8132
+    },
+    text: 'MiniX Testnet',
+    ui: {
+      color: '#5152f7',
+      logo: nodesMinixPNG
+    }
+  },
+  {
+    info: 'moonbaseAlpha',
+    providers: {
+      Blast: 'wss://moonbase-alpha.public.blastapi.io',
+      Dwellir: 'wss://moonbase-rpc.dwellir.com',
+      'Moonbeam Foundation': 'wss://wss.api.moonbase.moonbeam.network',
+      OnFinality: 'wss://moonbeam-alpha.api.onfinality.io/public-ws',
+      UnitedBloc: 'wss://moonbase.unitedbloc.com'
+    },
+    text: 'Moonbase Alpha',
+    ui: {
+      color: '#F45B5B',
+      logo: nodesMoonbaseAlphaSVG
+    }
+  },
+  {
+    info: 'mybank',
+    providers: {
+      // MYBANK: 'wss://mybank.network/substrate' // https://github.com/polkadot-js/apps/issues/5845
+    },
+    text: 'mybank.network',
+    ui: {
+      color: '#282736',
+      logo: nodesMybankPNG
+    }
+  },
+  {
+    info: 'myriad-tesnet',
+    providers: {
+      Myriad: 'wss://ws-rpc.testnet.myriad.social'
+    },
+    text: 'Myriad Testnet',
+    ui: {
+      color: '#7342CC',
+      logo: chainsMyriadPNG
+    }
+  },
+  {
+    info: 'nftmart',
+    providers: {
+      // NFTMartDev: 'wss://dev-ws.nftmart.io', // https://github.com/polkadot-js/apps/issues/9059
+      // NFTMartStaging: 'wss://staging-ws.nftmart.io' // https://github.com/polkadot-js/apps/issues/9059
+    },
+    text: 'NFTMart',
+    ui: {
+      color: '#307182',
+      logo: nodesNftmartPNG
+    }
+  },
+  {
+    info: 'opal',
+    providers: {
+      'Geo Load Balancer': 'wss://ws-opal.unique.network',
+      'Unique America': 'wss://us-ws-opal.unique.network',
+      'Unique Asia': 'wss://asia-ws-opal.unique.network',
+      'Unique Europe': 'wss://eu-ws-opal.unique.network'
+    },
+    text: 'OPAL by UNIQUE',
+    ui: {
+      color: '#3B9C9D',
+      logo: nodesOpalLogoPNG
+    }
+  },
+  {
+    info: 'opportunity',
+    providers: {
+      // 'Standard Protocol': 'wss://rpc.opportunity.standard.tech' // https://github.com/polkadot-js/apps/issues/7982
+    },
+    text: 'Opportunity',
+    ui: {
+      color: '#6143bc',
+      logo: nodesOpportunityPNG
+    }
+  },
+  {
+    info: 'pangoro',
+    providers: {
+      'Darwinia Network': 'wss://pangoro-rpc.darwinia.network'
+    },
+    text: 'Pangoro2',
+    ui: {
+      color: '#4B30DD',
+      logo: nodesPangoroSVG
+    }
+  },
+  {
+    info: 'phala',
+    providers: {
+      'Phala Network': 'wss://poc5.phala.network/ws'
+    },
+    text: 'Phala (PoC 5)',
+    ui: {
+      logo: nodesPhalaSVG
+    }
+  },
+  {
+    info: 'phoenix',
+    providers: {
+      // 'phoenix Protocol': 'wss://phoenix-ws.coinid.pro/' // https://github.com/polkadot-js/apps/issues/6181
+    },
+    text: 'Phoenix Mashnet',
+    ui: {
+      color: '#d42181',
+      logo: nodesPhoenixPNG
+    }
+  },
+  {
+    info: 'pichiu',
+    providers: {
+      // 'Kylin Network': 'wss://westend.kylin-node.co.uk' // https://github.com/polkadot-js/apps/pull/6761
+    },
+    text: 'Pichiu Testnet',
+    ui: {
+      logo: nodesPichiuPNG
+    }
+  },
+  {
+    info: 'polkadex',
+    providers: {
+      // 'Polkadex Team': 'wss://blockchain.polkadex.trade' // https://github.com/polkadot-js/apps/issues/9150
+    },
+    text: 'Polkadex',
+    ui: {
+      color: '#7C30DD',
+      logo: nodesPolkadexSVG
+    }
+  },
+  {
+    info: 'polymesh',
+    providers: {
+      Polymesh: 'wss://testnet-rpc.polymesh.live'
+    },
+    text: 'Polymesh Testnet',
+    ui: {
+      color: '#43195B',
+      logo: nodesPolymeshSVG
+    }
+  },
+  {
+    info: 'pontem',
+    providers: {
+      // Pontem: 'wss://testnet.pontem.network/ws', // https://github.com/polkadot-js/apps/issues/7652
+    },
+    text: 'Pontem',
+    ui: {
+      color: '#A92FAC',
+      logo: nodesPontemSVG
+    }
+  },
+  {
+    info: 'prism',
+    providers: {
+      // Prism: 'wss://testnet.psm.link' // https://github.com/polkadot-js/apps/issues/7340
+    },
+    text: 'Prism',
+    ui: {
+      color: 'linear-gradient(45deg, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%)',
+      logo: nodesPrismPNG
+    }
+  },
+  {
+    info: 'realis',
+    providers: {
+      // 'Realis.Network': 'wss://rpc.realis.network/' // https://github.com/polkadot-js/apps/issues/7982
+    },
+    text: 'Realis.Network',
+    ui: {
+      color: '#000000',
+      logo: nodesRealisPNG
+    }
+  },
+  {
+    info: 'riochain',
+    providers: {
+      // 'RioChain Staging': 'wss://node.v1.staging.riochain.io' // https://github.com/polkadot-js/apps/issues/6181
+    },
+    text: 'RioChain',
+    ui: {
+      color: '#4d87f6',
+      logo: nodesRiochainSVG
+    }
+  },
+  {
+    info: 'sherpax',
+    providers: {
+      Chainx: 'wss://sherpax-testnet.chainx.org'
+    },
+    text: 'Sherpax Testnet',
+    ui: {
+      color: '#6bbee8',
+      logo: nodesSherpaxPNG
+    }
+  },
+  {
+    info: 'shibuya',
+    providers: {
+      Dwellir: 'wss://shibuya-rpc.dwellir.com',
+      StakeTechnologies: 'wss://rpc.shibuya.astar.network'
+    },
+    text: 'Shibuya',
+    ui: {
+      color: '#1b6dc1d9',
+      logo: chainsShidenPNG
+    }
+  },
+  {
+    info: 'skyekiwi',
+    providers: {
+      SkyeKiwi: 'wss://staging.rpc.skye.kiwi'
+    },
+    text: 'SkyeKiwi Testnet',
+    ui: {
+      color: '#6667ab',
+      logo: chainsSkyekiwiPNG
+    }
+  },
+  {
+    info: 'sora-substrate',
+    providers: {
+      'Soramitsu #1': 'wss://ws.framenode-1.s1.stg1.sora2.soramitsu.co.jp',
+      'Soramitsu #2': 'wss://ws.framenode-2.s1.stg1.sora2.soramitsu.co.jp',
+      'Soramitsu #3': 'wss://ws.framenode-3.s2.stg1.sora2.soramitsu.co.jp',
+      'Soramitsu #4': 'wss://ws.framenode-4.s2.stg1.sora2.soramitsu.co.jp'
+    },
+    text: 'SORA-staging',
+    ui: {
+      color: '#2D2926',
+      logo: nodesSoraSubstrateSVG
+    }
+  },
+  {
+    info: 'subdao',
+    providers: {
+      // SubDAO: 'wss://alpha.subdao.org' // https://github.com/polkadot-js/apps/issues/7473
+    },
+    text: 'SubDAO Staging',
+    ui: {
+      color: 'linear-gradient(50deg, #F20092 0%, #FF4D5D 100%)',
+      logo: nodesSubdaoPNG
+    }
+  },
+  {
+    info: 'subgame',
+    providers: {
+      // SubGame: 'wss://staging.subgame.org' // https://github.com/polkadot-js/apps/issues/7982
+    },
+    text: 'SubGame Staging',
+    ui: {
+      color: '#EB027D',
+      logo: nodesSubgameSVG
+    }
+  },
+  {
+    info: 'subspace-farmnet',
+    providers: {
+      // 'Subspace Network': 'wss://farm-rpc.subspace.network/ws' // https://github.com/polkadot-js/apps/issues/8135
+    },
+    text: 'Subspace Farmnet',
+    ui: {
+      color: '#562b8e',
+      logo: nodesSubspacePNG
+    }
+  },
+  {
+    info: 'subspace-gemini-1',
+    providers: {
+      Europe: 'wss://eu.gemini-1b.subspace.network/ws'
+    },
+    text: 'Subspace Gemini 1',
+    ui: {
+      color: '#562b8e',
+      logo: nodesSubspacePNG
+    }
+  },
+  {
+    info: 'subspace-gemini-2a',
+    providers: {
+      Europe: 'wss://eu-0.gemini-2a.subspace.network/ws'
+    },
+    text: 'Subspace Gemini 2a',
+    ui: {
+      color: '#562b8e',
+      logo: nodesSubspacePNG
+    }
+  },
+  {
+    info: 'subspace',
+    providers: {
+      // 'Subspace Network': 'wss://test-rpc.subspace.network' // https://github.com/polkadot-js/apps/issues/8598
+    },
+    text: 'Subspace Testnet',
+    ui: {
+      color: '#562b8e',
+      logo: nodesSubspacePNG
+    }
+  },
+  {
+    info: 'tangle',
+    providers: {
+      // Webb: 'wss://tangle-archive.webb.tools' // https://github.com/polkadot-js/apps/issues/9104
+    },
+    text: 'Tangle Alpha',
+    ui: {
+      color: '#0099ff',
+      logo: chainsTanglePNG
+    }
+  },
+  {
+    info: 'ternoa-alphanet',
+    providers: {
+      CapsuleCorp: 'wss://alphanet.ternoa.com'
+    },
+    text: 'Ternoa Alphanet',
+    ui: {
+      logo: nodesTernoaSVG
+    }
+  },
+  {
+    info: 'ternoa-testnet',
+    providers: {
+      // CapsuleCorp: 'wss://testnet.ternoa.com/' // https://github.com/polkadot-js/apps/issues/9515
+    },
+    text: 'Ternoa Testnet',
+    ui: {
+      color: '#d622ff',
+      logo: nodesTernoaSVG
+    }
+  },
+  {
+    info: 'thebifrost-testnet',
+    providers: {
+      'Pilab #1': 'wss://public-01.testnet.bifrostnetwork.com/wss',
+      'Pilab #2': 'wss://public-02.testnet.bifrostnetwork.com/wss'
+    },
+    text: 'The Bifrost Testnet',
+    ui: {
+      color: '#FF474C',
+      logo: nodesThebifrostPNG
+    }
+  },
+  {
+    info: 'laminar',
+    providers: {
+      // Laminar: 'wss://testnet-node-1.laminar-chain.laminar.one/ws' // https://github.com/polkadot-js/apps/issues/8060
+    },
+    text: 'Turbulence',
+    ui: {
+      color: '#004FFF',
+      logo: nodesLaminarCircleSVG
+    }
+  },
+  {
+    info: 'uniarts',
+    providers: {
+      // UniArts: 'wss://testnet.uniarts.network' // https://github.com/polkadot-js/apps/issues/8541
+    },
+    text: 'UniArts',
+    ui: {
+      logo: nodesUniartsPNG
+    }
+  },
+  {
+    info: 'unique',
+    providers: {
+      // Unique: 'wss://testnet2.unique.network' // https://github.com/polkadot-js/apps/issues/7621
+    },
+    text: 'Unique',
+    ui: {
+      color: '#40BCFF',
+      logo: nodesUniqueSVG
+    }
+  },
+  {
+    info: 'unitv',
+    providers: {
+      // 'Unit Network': 'wss://unitventures.io/' // https://github.com/polkadot-js/apps/issues/5684
+    },
+    text: 'Unit Network',
+    ui: {
+      color: '#1452F0',
+      logo: nodesUnitnetworkPNG
+    }
+  },
+  {
+    info: 'vodka',
+    providers: {
+      // Vodka: 'wss://vodka.rpc.neatcoin.org/ws' // https://github.com/polkadot-js/apps/issues/8175
+    },
+    text: 'Vodka',
+    ui: {}
+  },
+  {
+    info: 'web3games',
+    providers: {
+      'Web3Games Foundation': 'wss://devnet.web3games.org'
+    },
+    text: 'Web3Games',
+    ui: {
+      color: '#000000',
+      logo: nodesWeb3gamesSVG
+    }
+  },
+  {
+    info: 'xsocial',
+    providers: {
+      DappForce: 'wss://xsocial.subsocial.network'
+    },
+    text: 'xSocial',
+    ui: {
+      logo: nodesSoonsocialPNG
+    }
+  },
+  {
+    info: 'zCloak',
+    providers: {
+      // 'zCloak Network': 'wss://test1.zcloak.network' // https://github.com/polkadot-js/apps/issues/7408
+    },
+    text: 'zCloak-network',
+    ui: {
+      color: 'linear-gradient(to right, #E89A76 0%, #C5B8CC 50%, #B0B4D7 100%)',
+      logo: nodesZCloakSVG
+    }
+  },
+  {
+    info: 'zero',
+    providers: {
+      // ZERO: 'wss://alphaville.zero.io' // https://github.com/polkadot-js/apps/issues/8263
+    },
+    text: 'Zero Alphaville',
+    ui: {
+      color: '#000000'
+    }
+  }
+];

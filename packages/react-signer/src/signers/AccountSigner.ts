@@ -1,15 +1,17 @@
-// Copyright 2017-2021 @polkadot/react-signer authors & contributors
+// Copyright 2017-2023 @polkadot/react-signer authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Signer, SignerResult } from '@polkadot/api/types';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import type { Registry, SignerPayloadJSON } from '@polkadot/types/types';
 
-import { lockAccount } from '../util';
+import { objectSpread } from '@polkadot/util';
+
+import { lockAccount } from '../util.js';
 
 let id = 0;
 
-export default class AccountSigner implements Signer {
+export class AccountSigner implements Signer {
   readonly #keyringPair: KeyringPair;
   readonly #registry: Registry;
 
@@ -23,7 +25,9 @@ export default class AccountSigner implements Signer {
       const signed = this.#registry.createType('ExtrinsicPayload', payload, { version: payload.version }).sign(this.#keyringPair);
 
       lockAccount(this.#keyringPair);
-      resolve({ id: ++id, ...signed });
+      resolve(
+        objectSpread({ id: ++id }, signed)
+      );
     });
   }
 }

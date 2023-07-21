@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/app-parachains authors & contributors
+// Copyright 2017-2023 @polkadot/app-parachains authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Option } from '@polkadot/types';
@@ -7,15 +7,13 @@ import type { PolkadotRuntimeCommonParasRegistrarParaInfo, PolkadotRuntimeParach
 
 import { createNamedHook, useApi, useCallMulti } from '@polkadot/react-hooks';
 
-import { sliceHex } from '../util';
-
 interface Result {
   headHex: string | null;
   lifecycle: PolkadotRuntimeParachainsParasParaLifecycle | null;
   manager: AccountId | null;
 }
 
-const optMulti = {
+const OPT_MULTI = {
   defaultValue: {
     headHex: null,
     lifecycle: null,
@@ -23,9 +21,9 @@ const optMulti = {
   },
   transform: ([optHead, optGenesis, optLifecycle, optInfo]: [Option<HeadData>, Option<PolkadotRuntimeParachainsParasParaGenesisArgs>, Option<PolkadotRuntimeParachainsParasParaLifecycle>, Option<PolkadotRuntimeCommonParasRegistrarParaInfo>]): Result => ({
     headHex: optHead.isSome
-      ? sliceHex(optHead.unwrap())
+      ? optHead.unwrap().toHex()
       : optGenesis.isSome
-        ? sliceHex(optGenesis.unwrap().genesisHead)
+        ? optGenesis.unwrap().genesisHead.toHex()
         : null,
     lifecycle: optLifecycle.unwrapOr(null),
     manager: optInfo.isSome
@@ -42,7 +40,7 @@ function useThreadInfoImpl (id: ParaId): Result {
     [api.query.paras.upcomingParasGenesis, id],
     [api.query.paras.paraLifecycles, id],
     [api.query.registrar.paras, id]
-  ], optMulti);
+  ], OPT_MULTI);
 }
 
 export default createNamedHook('useThreadInfo', useThreadInfoImpl);

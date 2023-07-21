@@ -1,20 +1,21 @@
-// Copyright 2017-2021 @polkadot/app-council authors & contributors
+// Copyright 2017-2023 @polkadot/app-council authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Hash, Proposal, ProposalIndex } from '@polkadot/types/interfaces';
 
 import React, { useState } from 'react';
 
-import { Button, InputAddress, Modal, ProposedAction, TxButton } from '@polkadot/react-components';
+import { Button, InputAddress, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useCollectiveInstance, useToggle, useWeight } from '@polkadot/react-hooks';
+import { ProposedAction } from '@polkadot/react-params';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   hasFailed: boolean;
   hash: Hash;
   idNumber: ProposalIndex;
-  proposal: Proposal;
+  proposal: Proposal | null;
 }
 
 function Close ({ hasFailed, hash, idNumber, proposal }: Props): React.ReactElement<Props> | null {
@@ -22,7 +23,7 @@ function Close ({ hasFailed, hash, idNumber, proposal }: Props): React.ReactElem
   const { api } = useApi();
   const [isOpen, toggleOpen] = useToggle();
   const [accountId, setAccountId] = useState<string | null>(null);
-  const [proposalWeight, proposalLength] = useWeight(proposal);
+  const { encodedCallLength, weight } = useWeight(proposal);
   const modLocation = useCollectiveInstance('council');
 
   // protect against older versions
@@ -47,7 +48,6 @@ function Close ({ hasFailed, hash, idNumber, proposal }: Props): React.ReactElem
             </Modal.Columns>
             <Modal.Columns hint={t<string>('The council account that will apply the close for the current round.')}>
               <InputAddress
-                help={t<string>('Select the account you wish close the proposal with.')}
                 label={t<string>('close from account')}
                 onChange={setAccountId}
                 type='account'
@@ -57,13 +57,13 @@ function Close ({ hasFailed, hash, idNumber, proposal }: Props): React.ReactElem
           <Modal.Actions>
             <TxButton
               accountId={accountId}
-              isDisabled={!hasFailed && !proposalLength}
+              isDisabled={!hasFailed && !encodedCallLength}
               onStart={toggleOpen}
               params={
                 api.tx[modLocation].close.meta.args.length === 4
                   ? hasFailed
                     ? [hash, idNumber, 0, 0]
-                    : [hash, idNumber, proposalWeight, proposalLength]
+                    : [hash, idNumber, weight, encodedCallLength]
                   : [hash, idNumber]
               }
               tx={api.tx[modLocation].closeOperational || api.tx[modLocation].close}

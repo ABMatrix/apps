@@ -1,37 +1,48 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
+import type { BN } from '@polkadot/util';
 
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Button, Input, InputAddress, InputBalance, Modal, TxButton } from '@polkadot/react-components';
 import { useApi, useToggle } from '@polkadot/react-hooks';
+import { BN_ZERO } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   members: string[];
 }
 
-const MAX_REASON_LEN = 128;
+const MAX_REASON_LEN = 256;
 const MIN_REASON_LEN = 5;
 
-function TipCreate ({ members }: Props): React.ReactElement<Props> {
+function TipCreate ({ members }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
   const [isOpen, toggleOpen] = useToggle();
   const [accountId, setAccountId] = useState<string | null>(null);
   const [beneficiary, setBeneficiary] = useState<string | null>(null);
-  const [isMember, setIsMember] = useState(false);
   const [reason, setReason] = useState('');
   const [value, setValue] = useState<BN | undefined>();
-  const hasValue = value?.gtn(0);
-  const hasReason = reason?.length >= MIN_REASON_LEN && reason?.length <= MAX_REASON_LEN;
+  const maxReasonLen = useMemo(
+    () => Math.min(MAX_REASON_LEN, (
+      (api.consts.tips || api.consts.treasury)?.maximumReasonLength?.toNumber() ||
+      MAX_REASON_LEN
+    )),
+    [api]
+  );
+  const isMember = useMemo(
+    () => !!accountId && members.includes(accountId),
+    [accountId, members]
+  );
+  const hasValue = !!value && value.gt(BN_ZERO);
+  const hasReason = !!reason && (reason.length >= MIN_REASON_LEN) && (reason.length <= maxReasonLen);
 
-  useEffect((): void => {
-    setIsMember(members.includes(accountId || ''));
-  }, [accountId, members]);
+  if (!(api.tx.tips.tipNew || api.tx.treasury.tipNew)) {
+    return null;
+  }
 
   return (
     <>
@@ -49,7 +60,6 @@ function TipCreate ({ members }: Props): React.ReactElement<Props> {
           <Modal.Content>
             <Modal.Columns hint={t<string>('Use this account to request the tip from. This can be a normal or council account.')}>
               <InputAddress
-                help={t<string>('Select the account you wish to submit the tip from.')}
                 label={t<string>('submit with account')}
                 onChange={setAccountId}
                 type='account'
@@ -58,7 +68,6 @@ function TipCreate ({ members }: Props): React.ReactElement<Props> {
             </Modal.Columns>
             <Modal.Columns hint={t<string>('The beneficiary will received the tip as approved by council members.')}>
               <InputAddress
-                help={t<string>('The account to which the tip will be transferred if approved')}
                 label={t<string>('beneficiary')}
                 onChange={setBeneficiary}
                 type='allPlus'
@@ -67,7 +76,6 @@ function TipCreate ({ members }: Props): React.ReactElement<Props> {
             <Modal.Columns hint={t<string>('A reason (to be stored-on-chain) as to why the recipient deserves a tip payout.')}>
               <Input
                 autoFocus
-                help={t<string>('The reason why this tip should be paid.')}
                 isError={!hasReason}
                 label={t<string>('tip reason')}
                 onChange={setReason}
@@ -76,7 +84,6 @@ function TipCreate ({ members }: Props): React.ReactElement<Props> {
             {isMember && (
               <Modal.Columns hint={t<string>('As a council member, you can suggest an initial value for the tip, each other council member can suggest their own.')}>
                 <InputBalance
-                  help={t<string>('The suggested value for this tip')}
                   isError={!hasValue}
                   label={t<string>('tip value')}
                   onChange={setValue}

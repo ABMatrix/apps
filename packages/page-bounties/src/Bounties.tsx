@@ -1,16 +1,17 @@
-// Copyright 2017-2021 @polkadot/app-bounties authors & contributors
+// Copyright 2017-2023 @polkadot/app-bounties authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef } from 'react';
-import styled from 'styled-components';
+import type { BN } from '@polkadot/util';
 
-import Summary from '@polkadot/app-bounties/Summary';
-import { Button, Table } from '@polkadot/react-components';
+import React, { useMemo, useRef } from 'react';
 
-import Bounty from './Bounty';
-import BountyCreate from './BountyCreate';
-import { useBounties } from './hooks';
-import { useTranslation } from './translate';
+import { Button, styled, Table } from '@polkadot/react-components';
+
+import { useBounties } from './hooks/index.js';
+import Bounty from './Bounty.js';
+import BountyCreate from './BountyCreate.js';
+import Summary from './Summary.js';
+import { useTranslation } from './translate.js';
 
 interface Props {
   className?: string;
@@ -18,66 +19,68 @@ interface Props {
 
 function Bounties ({ className }: Props): React.ReactElement {
   const { t } = useTranslation();
-  const { bestNumber, bounties } = useBounties();
+  const info = useBounties();
 
-  const headerRef = useRef([
-    [t('bounties'), 'start', 3],
-    [t('value'), 'start'],
-    [t('curator'), 'start'],
-    [t('next action'), 'start', 3]
+  const sorted = useMemo(
+    () => info && info.bounties && [...info.bounties].sort((a, b) => b.index.cmp(a.index)),
+    [info]
+  );
+
+  const headerRef = useRef<([React.ReactNode?, string?, number?] | false)[]>([
+    [t<string>('bounties'), 'start', 3],
+    [t<string>('value')],
+    [t<string>('curator'), 'start'],
+    [t<string>('next action'), 'start', 3]
   ]);
 
   return (
-    <div className={className}>
-      <Summary activeBounties={bounties?.length} />
+    <StyledDiv className={className}>
+      <Summary info={info} />
       <Button.Group>
         <BountyCreate />
       </Button.Group>
       <Table
         className='bounties-table-wrapper'
-        empty={bounties && t<string>('No open bounties')}
+        empty={sorted && t<string>('No open bounties')}
         header={headerRef.current}
-        withCollapsibleRows
       >
-        {bounties && bestNumber &&
-          bounties
-            .sort((a, b) => b.index.cmp(a.index))
-            .map(({ bounty, description, index, proposals }) => (
-              <Bounty
-                bestNumber={bestNumber}
-                bounty={bounty}
-                description={description}
-                index={index}
-                key={index.toNumber()}
-                proposals={proposals}
-              />
-            ))
-        }
+        {sorted && info.bestNumber && sorted.map(({ bounty, description, index, proposals }) => (
+          <Bounty
+            bestNumber={info.bestNumber as BN}
+            bounty={bounty}
+            description={description}
+            index={index}
+            key={index.toNumber()}
+            proposals={proposals}
+          />
+        ))}
       </Table>
-    </div>
+    </StyledDiv>
   );
 }
 
-export default React.memo(styled(Bounties)`
+const StyledDiv = styled.div`
   .bounties-table-wrapper table {
     tr {
-      td,
-      &:not(.filter) th {
+      td, &:not(.filter) th {
         &:last-child {
           padding-right: 1.14rem;
         }
       }
     }
   }
-.ui--IdentityIcon {
+
+  .ui--IdentityIcon {
     margin-right: 0.42rem;
   }
 
   .via-identity .name {
-    font-size: 1rem;
+    font-size: var(--font-size-base);
     line-height: 1.7rem;
     text-transform: initial;
     filter: initial;
     opacity: 1;
   }
-`);
+`;
+
+export default React.memo(Bounties);

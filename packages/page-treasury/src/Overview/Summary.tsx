@@ -1,16 +1,16 @@
-// Copyright 2017-2021 @polkadot/app-treasury authors & contributors
+// Copyright 2017-2023 @polkadot/app-treasury authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type BN from 'bn.js';
+import type { BN } from '@polkadot/util';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { CardSummary, SummaryBox } from '@polkadot/react-components';
 import { useApi, useBestNumber, useCall, useTreasury } from '@polkadot/react-hooks';
 import { FormatBalance } from '@polkadot/react-query';
-import { formatNumber } from '@polkadot/util';
+import { BN_THREE, BN_TWO, BN_ZERO, formatNumber } from '@polkadot/util';
 
-import { useTranslation } from '../translate';
+import { useTranslation } from '../translate.js';
 
 interface Props {
   approvalCount?: number;
@@ -22,46 +22,101 @@ function Summary ({ approvalCount, proposalCount }: Props): React.ReactElement<P
   const { api } = useApi();
   const bestNumber = useBestNumber();
   const totalProposals = useCall<BN>(api.query.treasury.proposalCount);
+  const { burn, pendingBounties, pendingProposals, spendPeriod, value } = useTreasury();
 
-  const { burn, spendPeriod, value } = useTreasury();
+  const spendable = useMemo(
+    () => value && value.sub(pendingBounties).sub(pendingProposals),
+    [value, pendingBounties, pendingProposals]
+  );
+
+  const hasSpendable = !!(value && spendable);
 
   return (
     <SummaryBox>
       <section>
-        <CardSummary label={t<string>('proposals')}>
-          {formatNumber(proposalCount)}
+        <CardSummary
+          className='media--1700'
+          label={t<string>('open')}
+        >
+          {proposalCount === undefined
+            ? <span className='--tmp'>99</span>
+            : formatNumber(proposalCount)}
         </CardSummary>
-        <CardSummary label={t<string>('total')}>
-          {formatNumber(totalProposals || 0)}
+        <CardSummary
+          className='media--1600'
+          label={t<string>('approved')}
+        >
+          {approvalCount === undefined
+            ? <span className='--tmp'>99</span>
+            : formatNumber(approvalCount)}
         </CardSummary>
-      </section>
-      <section className='media--1200'>
-        <CardSummary label={t<string>('approved')}>
-          {formatNumber(approvalCount)}
+        <CardSummary
+          className='media--1400'
+          label={t<string>('total')}
+        >
+          {totalProposals === undefined
+            ? <span className='--tmp'>99</span>
+            : formatNumber(totalProposals)}
         </CardSummary>
       </section>
       <section>
-        {value && (
-          <CardSummary label={t<string>('available')}>
-            <FormatBalance
-              value={value}
-              withSi
-            />
-          </CardSummary>
-        )}
-        {burn && (
+        {!pendingProposals.isZero() && (
           <CardSummary
-            className='media--1000'
-            label={t<string>('next burn')}
+            className='media--1100'
+            label={t<string>('approved')}
           >
             <FormatBalance
-              value={burn}
+              value={pendingProposals}
               withSi
             />
           </CardSummary>
         )}
+        {!pendingBounties.isZero() && (
+          <CardSummary
+            className='media--1200'
+            label={t<string>('bounties')}
+          >
+            <FormatBalance
+              value={pendingBounties}
+              withSi
+            />
+          </CardSummary>
+        )}
+        <CardSummary
+          className='media--1300'
+          label={t<string>('next burn')}
+        >
+          <FormatBalance
+            className={burn ? '' : '--tmp'}
+            value={burn || 1}
+            withSi
+          />
+        </CardSummary>
       </section>
-      {bestNumber && spendPeriod?.gtn(0) && (
+      <section>
+        <CardSummary
+          label={t<string>('spendable / available')}
+          progress={{
+            hideValue: true,
+            isBlurred: !hasSpendable,
+            total: hasSpendable ? value : BN_THREE,
+            value: hasSpendable ? spendable : BN_TWO
+          }}
+        >
+          <span className={hasSpendable ? '' : '--tmp'}>
+            <FormatBalance
+              value={spendable || BN_TWO}
+              withSi
+            />
+            <>&nbsp;/&nbsp;</>
+            <FormatBalance
+              value={value || BN_THREE}
+              withSi
+            />
+          </span>
+        </CardSummary>
+      </section>
+      {bestNumber && spendPeriod.gt(BN_ZERO) && (
         <section>
           <CardSummary
             label={t<string>('spend period')}

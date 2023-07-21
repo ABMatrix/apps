@@ -1,25 +1,27 @@
-// Copyright 2017-2021 @polkadot/app-bounties authors & contributors
+// Copyright 2017-2023 @polkadot/app-bounties authors & contributors
 // SPDX-License-Identifier: Apache-2.0
+
+import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+import type { BountyIndex, BountyStatus } from '@polkadot/types/interfaces';
+import type { BN } from '@polkadot/util';
+import type { ValidUnassignCuratorAction } from '../types.js';
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
-import { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
-import { Button, Menu, Popup } from '@polkadot/react-components';
+import { Menu, Popup } from '@polkadot/react-components';
 import { useCollectiveMembers, useToggle } from '@polkadot/react-hooks';
-import { BlockNumber, BountyIndex, BountyStatus } from '@polkadot/types/interfaces';
 
-import { determineUnassignCuratorAction } from '../helpers';
-import { useBountyStatus, useUserRole } from '../hooks';
-import { useTranslation } from '../translate';
-import { ValidUnassignCuratorAction } from '../types';
-import BountyRejectCurator from './BountyRejectCurator';
-import CloseBounty from './CloseBounty';
-import ExtendBountyExpiryAction from './ExtendBountyExpiryAction';
-import GiveUp from './GiveUp';
-import SlashCurator from './SlashCurator';
+import { determineUnassignCuratorAction } from '../helpers/index.js';
+import { useBountyStatus, useUserRole } from '../hooks/index.js';
+import { useTranslation } from '../translate.js';
+import BountyRejectCurator from './BountyRejectCurator.js';
+import CloseBounty from './CloseBounty.js';
+import ExtendBountyExpiryAction from './ExtendBountyExpiryAction.js';
+import GiveUp from './GiveUp.js';
+import SlashCurator from './SlashCurator.js';
 
 interface Props {
-  bestNumber: BlockNumber;
+  bestNumber: BN;
   className?: string;
   description: string;
   index: BountyIndex;
@@ -37,20 +39,30 @@ function Index ({ bestNumber, className, description, index, proposals, status }
   const { t } = useTranslation();
   const { isMember } = useCollectiveMembers('council');
   const { curator, updateDue } = useBountyStatus(status);
+  const { isCurator, roles } = useUserRole(curator);
 
   const blocksUntilUpdate = useMemo(() => updateDue?.sub(bestNumber), [bestNumber, updateDue]);
-
-  const { isCurator, roles } = useUserRole(curator);
   const availableSlashActions = determineUnassignCuratorAction(roles, status, blocksUntilUpdate);
 
   const slashCuratorActionNames = useRef<Record<ValidUnassignCuratorAction, string>>({
-    SlashCuratorAction: t('Slash curator'),
-    SlashCuratorMotion: t('Slash curator (Council)'),
-    UnassignCurator: t('Unassign curator')
+    SlashCuratorAction: t<string>('Slash curator'),
+    SlashCuratorMotion: t<string>('Slash curator (Council)'),
+    UnassignCurator: t<string>('Unassign curator')
   });
 
-  const existingCloseBountyProposal = useMemo(() => proposals?.find(({ proposal }) => proposal.method === 'closeBounty'), [proposals]);
-  const existingUnassignCuratorProposal = useMemo(() => proposals?.find(({ proposal }) => proposal.method === 'unassignCurator'), [proposals]);
+  const existingCloseBountyProposal = useMemo(
+    () => proposals?.find(({ proposal }) =>
+      proposal && proposal.method === 'closeBounty'
+    ),
+    [proposals]
+  );
+
+  const existingUnassignCuratorProposal = useMemo(
+    () => proposals?.find(({ proposal }) =>
+      proposal && proposal.method === 'unassignCurator'
+    ),
+    [proposals]
+  );
 
   const showCloseBounty = (status.isFunded || status.isActive || status.isCuratorProposed) && isMember && !existingCloseBountyProposal;
   const showRejectCurator = status.isCuratorProposed && isCurator;
@@ -115,55 +127,44 @@ function Index ({ bestNumber, className, description, index, proposals, status }
         <Popup
           value={
             <Menu className='settings-menu'>
-              {showCloseBounty &&
-              <Menu.Item
-                key='closeBounty'
-                onClick={toggleCloseBounty}
-              >
-                {t<string>('Close')}
-              </Menu.Item>
-              }
-              {showRejectCurator &&
-              <Menu.Item
-                key='rejectCurator'
-                onClick={toggleRejectCurator}
-              >
-                {t<string>('Reject curator')}
-              </Menu.Item>
-              }
-              {showExtendExpiry &&
-              <Menu.Item
-                key='extendExpiry'
-                onClick={toggleExtendExpiry}
-              >
-                {t<string>('Extend expiry')}
-              </Menu.Item>
-              }
-              {showGiveUpCurator &&
-              <Menu.Item
-                key='giveUpCurator'
-                onClick={toggleGiveUpCurator}
-              >
-                {t<string>('Give up')}
-              </Menu.Item>
-              }
-              {showSlashCurator && availableSlashActions.map((actionName) =>
+              {showCloseBounty && (
+                <Menu.Item
+                  key='closeBounty'
+                  label={t<string>('Close')}
+                  onClick={toggleCloseBounty}
+                />
+              )}
+              {showRejectCurator && (
+                <Menu.Item
+                  key='rejectCurator'
+                  label={t<string>('Reject curator')}
+                  onClick={toggleRejectCurator}
+                />
+              )}
+              {showExtendExpiry && (
+                <Menu.Item
+                  key='extendExpiry'
+                  label={t<string>('Extend expiry')}
+                  onClick={toggleExtendExpiry}
+                />
+              )}
+              {showGiveUpCurator && (
+                <Menu.Item
+                  key='giveUpCurator'
+                  label={t<string>('Give up')}
+                  onClick={toggleGiveUpCurator}
+                />
+              )}
+              {showSlashCurator && availableSlashActions.map((actionName) => (
                 <Menu.Item
                   key={actionName}
+                  label={slashCuratorActionNames.current[actionName]}
                   onClick={slashCurator(actionName)}
-                >
-                  {slashCuratorActionNames.current[actionName]}
-                </Menu.Item>
-              )}
+                />
+              ))}
             </Menu>
           }
-        >
-          <Button
-            dataTestId='extra-actions'
-            icon='ellipsis-v'
-            isReadOnly={false}
-          />
-        </Popup>
+        />
       </div>
     )
     : null;

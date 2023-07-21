@@ -1,27 +1,31 @@
-// Copyright 2017-2021 @polkadot/page-accounts authors & contributors
+// Copyright 2017-2023 @polkadot/page-accounts authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { queryByAttribute, render, RenderResult, screen } from '@testing-library/react';
-import BN from 'bn.js';
+/* global jest, fail */
+
+import type { RenderResult } from '@testing-library/react';
+import type { ApiProps } from '@polkadot/react-api/types';
+import type { PartialQueueTxExtrinsic, QueueProps, QueueTxExtrinsicAdd } from '@polkadot/react-components/Status/types';
+import type { UseAccountInfo } from '@polkadot/react-hooks/types';
+import type { AccountOverrides } from '../utils/accountDefaults.js';
+
+import { queryByAttribute, render, screen } from '@testing-library/react';
 import React, { Suspense } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 
-import AccountSidebar from '@polkadot/app-accounts/Sidebar';
-import { lightTheme } from '@polkadot/apps/themes';
 import { POLKADOT_GENESIS } from '@polkadot/apps-config';
-import { ApiContext } from '@polkadot/react-api';
-import { ApiProps } from '@polkadot/react-api/types';
-import { QueueProvider } from '@polkadot/react-components/Status/Context';
-import { PartialQueueTxExtrinsic, QueueProps, QueueTxExtrinsicAdd } from '@polkadot/react-components/Status/types';
-import { UseAccountInfo } from '@polkadot/react-hooks/types';
-import { mockApiHooks } from '@polkadot/test-support/utils/mockApiHooks';
+import { AccountSidebar, lightTheme } from '@polkadot/react-components';
+import { ApiCtx } from '@polkadot/react-hooks/ctx/Api';
+import { QueueCtx } from '@polkadot/react-hooks/ctx/Queue';
 import { TypeRegistry } from '@polkadot/types/create';
 import { keyring } from '@polkadot/ui-keyring';
+import { BN } from '@polkadot/util';
 
-import { alice, bob, charlie, ferdie } from '../keyring';
-import { Table } from '../pagesElements';
-import { AccountOverrides, mockAccountHooks } from '../utils/accountDefaults';
+import { alice, bob, charlie, ferdie } from '../keyring/index.js';
+import { Table } from '../pagesElements/index.js';
+import { mockAccountHooks } from '../utils/accountDefaults.js';
+import { mockApiHooks } from '../utils/mockApiHooks.js';
 
 let queueExtrinsic: (value: PartialQueueTxExtrinsic) => void;
 
@@ -59,8 +63,8 @@ jest.mock('@polkadot/react-hooks/useAccountInfo', () => {
   });
 });
 
-jest.mock('@polkadot/react-hooks/useLoadingDelay', () => ({
-  useLoadingDelay: () => false
+jest.mock('@polkadot/react-hooks/useNextTick', () => ({
+  useNextTick: () => true
 }));
 
 jest.mock('@polkadot/react-hooks/useBalancesAll', () => ({
@@ -103,6 +107,10 @@ jest.mock('@polkadot/react-hooks/useRegistrars', () => ({
   })
 }));
 
+jest.mock('@polkadot/react-hooks/useTheme', () => ({
+  useTheme: () => ({ theme: 'light', themeClassName: 'theme--light' })
+}));
+
 export abstract class Page {
   private renderResult?: RenderResult;
   protected readonly defaultAddresses = [alice, bob, charlie, ferdie];
@@ -120,70 +128,82 @@ export abstract class Page {
     });
 
     const noop = () => Promise.resolve(() => { /**/ });
-    const mockApi: ApiProps = {
-      api: {
-        consts: {
-          babe: {
-            expectedBlockTime: new BN(1)
-          },
-          democracy: {
-            enactmentPeriod: new BN(1)
-          },
-          proxy: {
-            proxyDepositBase: new BN(1),
-            proxyDepositFactor: new BN(1)
-          }
+    const registry = new TypeRegistry();
+    const api = {
+      consts: {
+        babe: {
+          expectedBlockTime: new BN(1)
         },
-        createType: () => ({
-          defKeys: []
-        }),
-        derive: {
-          accounts: {
-            info: noop
-          },
-          balances: {
-            all: noop
-          },
-          chain: {
-            bestNumber: noop
-          },
-          democracy: {
-            locks: noop
-          },
-          staking: {
-            account: noop
-          }
+        democracy: {
+          enactmentPeriod: new BN(1)
         },
-        genesisHash: new TypeRegistry().createType('Hash', POLKADOT_GENESIS),
-        query: {
-          democracy: {
-            votingOf: noop
-          },
-          identity: {
-            identityOf: noop
-          }
-        },
-        registry: {
-          chainDecimals: [12],
-          chainTokens: ['Unit'],
-          lookup: {
-            names: []
-          }
-        },
-        tx: {
-          council: {},
-          democracy: {
-            delegate: noop
-          },
-          multisig: {
-            approveAsMulti: Object.assign(noop, { meta: { args: [] } })
-          },
-          proxy: {
-            removeProxies: noop
-          },
-          utility: noop
+        proxy: {
+          proxyDepositBase: new BN(1),
+          proxyDepositFactor: new BN(1)
         }
       },
+      createType: () => ({
+        defKeys: []
+      }),
+      derive: {
+        accounts: {
+          info: noop
+        },
+        balances: {
+          all: noop
+        },
+        chain: {
+          bestNumber: noop
+        },
+        democracy: {
+          locks: noop
+        },
+        staking: {
+          account: noop
+        }
+      },
+      genesisHash: registry.createType('Hash', POLKADOT_GENESIS),
+      query: {
+        democracy: {
+          votingOf: noop
+        },
+        identity: {
+          identityOf: noop
+        }
+      },
+      registry: {
+        chainDecimals: [12],
+        chainTokens: ['Unit'],
+        createType: (...args: Parameters<typeof registry.createType>) =>
+          registry.createType(...args),
+        lookup: {
+          names: []
+        }
+      },
+      tx: {
+        council: {},
+        democracy: {
+          delegate: noop
+        },
+        multisig: {
+          approveAsMulti: Object.assign(noop, { meta: { args: [] } })
+        },
+        proxy: {
+          removeProxies: noop
+        },
+        utility: noop
+      }
+    };
+    const mockApi: ApiProps = {
+      api,
+      apiSystem: {
+        ...api,
+        isReady: Promise.resolve(api)
+      },
+      isApiConnected: true,
+      isApiInitialized: true,
+      isApiReady: true,
+      isEthereum: false,
       systemName: 'substrate'
     } as unknown as ApiProps;
 
@@ -196,17 +216,17 @@ export abstract class Page {
       <>
         <div id='tooltips' />
         <Suspense fallback='...'>
-          <QueueProvider value={queue}>
+          <QueueCtx.Provider value={queue}>
             <MemoryRouter>
               <ThemeProvider theme={lightTheme}>
-                <ApiContext.Provider value={mockApi}>
+                <ApiCtx.Provider value={mockApi}>
                   <AccountSidebar>
                     {React.cloneElement(this.overview, { onStatusChange: noop }) }
                   </AccountSidebar>
-                </ApiContext.Provider>
+                </ApiCtx.Provider>
               </ThemeProvider>
             </MemoryRouter>
-          </QueueProvider>
+          </QueueCtx.Provider>
         </Suspense>
       </>
     );
